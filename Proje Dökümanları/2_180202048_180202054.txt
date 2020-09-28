@@ -1,0 +1,2764 @@
+// Bu dosyada 2 tane form classına ait bilgi vardır.
+// C# diliyle yazıldığından ve bu projede 2 form yapısı kullandığından 2 class a kadar sıkıştırılmıştır kodlar.
+// Bu dosyalar "GirisSayasi.cs" ve "AnaForm.cs" classlarında çalışacak olan dosyalardır.
+// "GirisSayasi" ve "AnaForm" classlarına yapıştırılırsa dosyalar doğru şekilde çalışıcaktır.
+// Dosyanın namespacei y "Prolab 6" olduğundan namespacei yani klasörü "Prolab 6" şekilde olacak bi proje dosyasında açılmalıdır.
+// "GirisSayfasi" classından sonra bu dosyada "AnaForm.cs" classını bulabilirsiniz.
+// Diğer class bilgilerini "AnaForm.cs" classının kodlarından sonra bulabilirsiniz.
+
+
+// --------------------------------------GirisSayfasi Form Classı----------------------------------------------
+
+public class GirisSayfasi : Form
+    {
+        private (bool secim, string ad) aksiyon = (false, "Aksiyon ve Macera");
+        private (bool secim, string ad) komedi = (false, "Komedi");
+        private (bool secim, string ad) belgesel = (false, "Belgesel");
+        private (bool secim, string ad) bilimkurgu = (false, "Bilim Kurgu ve Fantastik");
+        private (bool secim, string ad) doga = (false, "Bilim ve Doğa");
+        private (bool secim, string ad) korku = (false, "Korku");
+        private (bool secim, string ad) romantizim = (false, "Romantizm");
+        private (bool secim, string ad) gerilim = (false, "Gerilim");
+        private (bool secim, string ad) drama = (false, "Drama");
+        private (bool secim, string ad) aile = (false, "Aile");
+        private (bool secim, string ad) anime = (false, "Anime");
+        private (bool secim, string ad) reality = (false, "Reality Program");
+        private int toplamSecim = 1;
+
+        AnaForm anaSayfa;
+        Mysqlislemleri mysql;
+        BağlantıBilgileriOku oku;
+        List<string> emails;
+        List<string> TurSecim;
+
+        public GirisSayfasi()
+        {
+            InitializeComponent();
+            oku = new BağlantıBilgileriOku();
+            mysql = new Mysqlislemleri(oku.password, oku.datasource, oku.port, oku.username);
+            emails = new List<string>();
+            TurSecim = new List<string>();
+            emails = mysql.EmailKontrol();
+
+            pnlkayıtSayfası.SuspendLayout();
+            pnlkayıtSayfası2.SuspendLayout();
+
+            Transparent();
+            lblkayıtsorun.Text = "";
+            lblkayıtbilgilendir.Text = "*Bir sonraki kategori bölümünde\n" +
+                "3 kategori seçilmesi gerekmektedir.";
+        }
+
+        // labelların arkalarını transparent yapma
+        private void Transparent()
+        {
+
+            lblgirisbilgilendir.Parent = pnlgirispaneli;
+            lblgirisbilgilendir.BackColor = Color.Transparent;
+
+            lblkayıtsorun.Parent = pnlkayıtSayfası;
+            lblkayıtsorun.BackColor = Color.Transparent;
+
+            lblkayıtbilgilendir.Parent = pnlkayıtSayfası;
+            lblkayıtbilgilendir.BackColor = Color.Transparent;
+
+            lblkayıt2bilgilendir.Parent = pnlkayıtSayfası2;
+            lblkayıt2bilgilendir.BackColor = Color.Transparent;
+        }
+
+
+        private void btnKayitOl_Click(object sender, EventArgs e)
+        {
+            if (mysql.baglanti == 0)
+            {
+                MessageBox.Show("Connection bilgileri doldurulmadan devam edilemez.", "Bağlanma Uyarısı",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                Application.Exit();
+            }
+
+            else
+            {
+                this.Controls.Clear();
+                this.Controls.Add(pnlkayıtSayfası);
+                pnlgirispaneli.SuspendLayout();
+                pnlkayıtSayfası2.SuspendLayout();
+            }
+        }
+
+        private void btnGiris_Click(object sender, EventArgs e)
+        {
+            if (mysql.baglanti == 0)
+            {
+                MessageBox.Show("Connection bilgileri doldurulmadan devam edilemez.", "Bağlanma Uyarısı",
+                   MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                Application.Exit();
+            }
+            if (txtgiriseposta.Text == "" && txtgirissifre.Text == "")
+            {
+                lblgirisbilgilendir.Text = "*Şifre ve e-posta kısımları \n" +
+                    " doldurulmadan devam edilemez!!";
+            }
+            else
+            {
+                bool girisyapsinmi;
+                girisyapsinmi = mysql.GirisYap(txtgiriseposta.Text, txtgirissifre.Text);
+
+                if (girisyapsinmi == true)
+                {
+                    anaSayfa = new AnaForm();
+                    anaSayfa.KullaniciGirisVerisiAl(txtgiriseposta.Text);
+                    this.Owner = anaSayfa;
+                    anaSayfa.Show();
+                    this.Hide();
+                }
+                else
+                    lblgirisbilgilendir.Text = "*Kullanıcı bulunamadı !!";
+            }
+        }
+
+        // kullanici kayıt formunu doldururuken kontrol edilme işlemleri
+        private int KayıtKontrol()
+        {
+            if (txtkayıteposta.Text != "" && txtkayıtsifre.Text != "" && txtkayıtad.Text != "" && txtkayıtdgtarih.Text != "")
+            {
+                foreach (var item in emails)
+                    if (txtkayıteposta.Text == item) return 4;
+
+
+                if (txtkayıtdgtarih.Text.IndexOf(" ") != -1)
+                    return 3;
+
+                if (1900 >= Convert.ToInt32(txtkayıtdgtarih.Text.Substring(0, 4)) || 2020 < Convert.ToInt32(txtkayıtdgtarih.Text.Substring(0, 4))) return 5;
+                else if (0 >= Convert.ToInt32(txtkayıtdgtarih.Text.Substring(5, 2)) || 12 < Convert.ToInt32(txtkayıtdgtarih.Text.Substring(5, 2))) return 5;
+                else if (0 >= Convert.ToInt32(txtkayıtdgtarih.Text.Substring(8, 2)) || 31 < Convert.ToInt32(txtkayıtdgtarih.Text.Substring(8, 2))) return 5;
+
+                string eposta = txtkayıteposta.Text;
+                int index1 = eposta.IndexOf("@");
+
+                if (index1 == 0 || index1 == -1)
+                    return 2;
+
+                else
+                {
+                    int index2 = eposta.IndexOf(".com");
+
+                    if (index2 - index1 > 1)
+                        return 0;
+
+                    else
+                        return 2;
+                }
+            }
+            return 1;
+        }
+
+        private void btnDevamEt_Click(object sender, EventArgs e)
+        {
+            int denetim = 0;
+            denetim = KayıtKontrol();
+
+            if (denetim == 1)
+            {
+                lblkayıtsorun.Text = "*Yukarıdaki alanlar \n" +
+                    " doldurulmadan devam edilemez!!";
+            }
+            else if (denetim == 2)
+            {
+                lblkayıtsorun.Text = "e posta alanını yanlış doldurdunuz.\n" +
+                    " lütfen tekrar giriniz.";
+            }
+            else if (denetim == 3)
+            {
+                lblkayıtsorun.Text = "date kısmını eksik doldurdunuz. \n" +
+                    "yıl-ay-gün şeklinde boş kalmıcak\nşekilde doldurulmalıdır.";
+            }
+            else if (denetim == 4)
+            {
+                lblkayıtsorun.Text = "Bu e-posta sistemde kayıtlıdır.\n" +
+                    "Lütfen tekrar e-posta giriniz";
+            }
+            else if (denetim == 5)
+            {
+                lblkayıtsorun.Text = "Tarih Kısmını Yanlış Doldurdunuz.\n" +
+                    "Yıl en az 1900 en fazla 2020 olabilir. \n" +
+                    "Ay ve gün kısımlarınada normal \ndeğerler giriniz.";
+            }
+            else
+            {
+                this.Controls.Clear();
+                this.Controls.Add(pnlkayıtSayfası2);
+                pnlgirispaneli.SuspendLayout();
+                pnlkayıtSayfası.SuspendLayout();
+            }
+        }
+
+        private void btngeri_Click(object sender, EventArgs e)
+        {
+            this.Controls.Clear();
+            this.Controls.Add(pnlgirispaneli);
+            pnlkayıtSayfası.SuspendLayout();
+            pnlkayıtSayfası2.SuspendLayout();
+        }
+
+        // son kayıt sayfasındaki türlerden hangisini seçtiğini bulma
+        private void TurSecimKontrol(ref (bool secim, string ad) tur, Label lbl, PictureBox pic)
+        {
+            if (tur.secim == false && toplamSecim < 4)
+            {
+                toplamSecim += 1;
+                tur.secim = true;
+                TurSecim.Add(tur.ad);
+                lbl.BackColor = Color.FromArgb(229, 9, 20);
+                pic.BackColor = Color.FromArgb(229, 9, 20);
+            }
+            else if (tur.secim == true)
+            {
+                toplamSecim -= 1;
+                tur.secim = false;
+                TurSecim.Remove(tur.ad);
+                lbl.BackColor = Color.FromArgb(105, 105, 105);
+                pic.BackColor = Color.FromArgb(105, 105, 105);
+            }
+        }
+
+        private void btnkayıt2KayitKaydet_Click(object sender, EventArgs e)
+        {
+            if (toplamSecim == 4)
+            {
+                mysql.KayitOl(txtkayıtad.Text, txtkayıteposta.Text, txtkayıtsifre.Text, txtkayıtdgtarih.Text);
+                anaSayfa = new AnaForm();
+                anaSayfa.ÖnerilenTurCek(TurSecim);
+                anaSayfa.KullaniciGirisVerisiAl(txtkayıteposta.Text);
+                this.Owner = anaSayfa;
+                anaSayfa.Show();
+                this.Hide();
+            }
+            else lblkayıt2bilgilendir.Text = "3 farklı tür seçmeniz\ngerekmektedir.";
+        }
+
+        private void lblkayıt2aksiyon_Click(object sender, EventArgs e)
+        {
+            TurSecimKontrol(ref aksiyon, lblkayıt2aksiyon, pickayıt2aksiyon);
+        }
+
+        private void lblkayıt2bilimvedoga_Click(object sender, EventArgs e)
+        {
+            TurSecimKontrol(ref doga, lblkayıt2bilimvedoga, pickayıt2bilimvedoga);
+        }
+
+        private void lblkayıt2komedi_Click(object sender, EventArgs e)
+        {
+            TurSecimKontrol(ref komedi, lblkayıt2komedi, pickayıt2komedi);
+        }
+
+        private void lblkayıt2cocukveaile_Click(object sender, EventArgs e)
+        {
+            TurSecimKontrol(ref aile, lblkayıt2cocukveaile, pickayıt2cocuk);
+        }
+
+        private void lblkayıt2belgesel_Click(object sender, EventArgs e)
+        {
+            TurSecimKontrol(ref belgesel, lblkayıt2belgesel, pickayıt2belgesel);
+        }
+
+        private void lblkayıt2gerilim_Click(object sender, EventArgs e)
+        {
+            TurSecimKontrol(ref gerilim, lblkayıt2gerilim, pickayıt2gerilim);
+        }
+
+        private void lblkayıt2korku_Click(object sender, EventArgs e)
+        {
+            TurSecimKontrol(ref korku, lblkayıt2korku, pickayıt2korku);
+        }
+
+        private void lblkayıt2romantizim_Click(object sender, EventArgs e)
+        {
+            TurSecimKontrol(ref romantizim, lblkayıt2romantizim, pickayıt2romantizim);
+        }
+
+        private void lblkayıt2bilimkurgu_Click(object sender, EventArgs e)
+        {
+            TurSecimKontrol(ref bilimkurgu, lblkayıt2bilimkurgu, pickayıt2bilimkurgu);
+        }
+
+        private void lblkayıt2drama_Click(object sender, EventArgs e)
+        {
+            TurSecimKontrol(ref drama, lblkayıt2drama, pickayıt2drama);
+        }
+
+        private void lblkayıt2reality_Click(object sender, EventArgs e)
+        {
+            TurSecimKontrol(ref reality, lblkayıt2reality, pickayıt2reality);
+        }
+
+        private void lblkayıt2anime_Click(object sender, EventArgs e)
+        {
+            TurSecimKontrol(ref anime, lblkayıt2anime, pickayıt2anime);
+        }
+
+        /// <summary>
+        ///Gerekli tasarımcı değişkeni.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
+
+        /// <summary>
+        ///Kullanılan tüm kaynakları temizleyin.
+        /// </summary>
+        ///<param name="disposing">yönetilen kaynaklar dispose edilmeliyse doğru; aksi halde yanlış.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        #region Windows Form Designer üretilen kod
+
+        /// <summary>
+        /// Tasarımcı desteği için gerekli metot - bu metodun 
+        ///içeriğini kod düzenleyici ile değiştirmeyin.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(GirisSayfasi));
+            this.pnlgirispaneli = new System.Windows.Forms.Panel();
+            this.lblgirissifre = new System.Windows.Forms.Label();
+            this.lblgiriseposta = new System.Windows.Forms.Label();
+            this.txtgirissifre = new System.Windows.Forms.TextBox();
+            this.txtgiriseposta = new System.Windows.Forms.TextBox();
+            this.btngirisKayitOl = new System.Windows.Forms.Button();
+            this.btngirisGiris = new System.Windows.Forms.Button();
+            this.lblgirisbilgilendir = new System.Windows.Forms.Label();
+            this.pnlkayıtSayfası2 = new System.Windows.Forms.Panel();
+            this.lblkayıt2bilgilendir = new System.Windows.Forms.Label();
+            this.pickayıt2anime = new System.Windows.Forms.PictureBox();
+            this.pickayıt2reality = new System.Windows.Forms.PictureBox();
+            this.lblkayıt2anime = new System.Windows.Forms.Label();
+            this.lblkayıt2reality = new System.Windows.Forms.Label();
+            this.btnkayıt2kayıtol = new System.Windows.Forms.Button();
+            this.pickayıt2drama = new System.Windows.Forms.PictureBox();
+            this.pickayıt2bilimkurgu = new System.Windows.Forms.PictureBox();
+            this.pickayıt2romantizim = new System.Windows.Forms.PictureBox();
+            this.pickayıt2korku = new System.Windows.Forms.PictureBox();
+            this.pickayıt2gerilim = new System.Windows.Forms.PictureBox();
+            this.pickayıt2cocuk = new System.Windows.Forms.PictureBox();
+            this.pickayıt2bilimvedoga = new System.Windows.Forms.PictureBox();
+            this.pickayıt2belgesel = new System.Windows.Forms.PictureBox();
+            this.pickayıt2komedi = new System.Windows.Forms.PictureBox();
+            this.pickayıt2aksiyon = new System.Windows.Forms.PictureBox();
+            this.lblkayıt2drama = new System.Windows.Forms.Label();
+            this.lblkayıt2romantizim = new System.Windows.Forms.Label();
+            this.lblkayıt2gerilim = new System.Windows.Forms.Label();
+            this.lblkayıt2cocukveaile = new System.Windows.Forms.Label();
+            this.lblkayıt2bilimkurgu = new System.Windows.Forms.Label();
+            this.lblkayıt2korku = new System.Windows.Forms.Label();
+            this.lblkayıt2belgesel = new System.Windows.Forms.Label();
+            this.lblkayıt2komedi = new System.Windows.Forms.Label();
+            this.lblkayıt2bilimvedoga = new System.Windows.Forms.Label();
+            this.lblkayıt2aksiyon = new System.Windows.Forms.Label();
+            this.pnlkayıtSayfası = new System.Windows.Forms.Panel();
+            this.btnkayıtgeri = new System.Windows.Forms.Button();
+            this.txtkayıtdgtarih = new System.Windows.Forms.MaskedTextBox();
+            this.lblkayıtdgtarihi = new System.Windows.Forms.Label();
+            this.lblkayıtad = new System.Windows.Forms.Label();
+            this.txtkayıtad = new System.Windows.Forms.TextBox();
+            this.lblkayıtbilgilendir = new System.Windows.Forms.Label();
+            this.lblkayıtsorun = new System.Windows.Forms.Label();
+            this.btnkayıtdevamet = new System.Windows.Forms.Button();
+            this.lblkayıtsifre = new System.Windows.Forms.Label();
+            this.lblkayıteposta = new System.Windows.Forms.Label();
+            this.txtkayıtsifre = new System.Windows.Forms.TextBox();
+            this.txtkayıteposta = new System.Windows.Forms.TextBox();
+            this.pnlgirispaneli.SuspendLayout();
+            this.pnlkayıtSayfası2.SuspendLayout();
+            this.pnlkayıtSayfası.SuspendLayout();
+            this.SuspendLayout();
+            // 
+            // pnlgirispaneli
+            // 
+            this.pnlgirispaneli.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
+            this.pnlgirispaneli.BackgroundImage = Image.FromFile("..\\resorce\\arkaplan ve icon\\Netflix arkaplan.jpg");
+            this.pnlgirispaneli.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.pnlgirispaneli.Controls.Add(this.lblgirissifre);
+            this.pnlgirispaneli.Controls.Add(this.lblgiriseposta);
+            this.pnlgirispaneli.Controls.Add(this.txtgirissifre);
+            this.pnlgirispaneli.Controls.Add(this.txtgiriseposta);
+            this.pnlgirispaneli.Controls.Add(this.btngirisKayitOl);
+            this.pnlgirispaneli.Controls.Add(this.btngirisGiris);
+            this.pnlgirispaneli.Controls.Add(this.lblgirisbilgilendir);
+            this.pnlgirispaneli.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pnlgirispaneli.Location = new System.Drawing.Point(0, 0);
+            this.pnlgirispaneli.Name = "pnlgirispaneli";
+            this.pnlgirispaneli.Size = new System.Drawing.Size(782, 553);
+            this.pnlgirispaneli.TabIndex = 1;
+            // 
+            // lblgirissifre
+            // 
+            this.lblgirissifre.AutoSize = true;
+            this.lblgirissifre.BackColor = System.Drawing.Color.Transparent;
+            this.lblgirissifre.Font = new System.Drawing.Font("Arial", 13F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.lblgirissifre.ForeColor = System.Drawing.SystemColors.ActiveBorder;
+            this.lblgirissifre.Location = new System.Drawing.Point(268, 333);
+            this.lblgirissifre.Name = "lblgirissifre";
+            this.lblgirissifre.Size = new System.Drawing.Size(66, 26);
+            this.lblgirissifre.TabIndex = 10;
+            this.lblgirissifre.Text = "Şifre:";
+            // 
+            // lblgiriseposta
+            // 
+            this.lblgiriseposta.AutoSize = true;
+            this.lblgiriseposta.BackColor = System.Drawing.Color.Transparent;
+            this.lblgiriseposta.Font = new System.Drawing.Font("Arial", 13F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.lblgiriseposta.ForeColor = System.Drawing.SystemColors.ActiveBorder;
+            this.lblgiriseposta.Location = new System.Drawing.Point(268, 254);
+            this.lblgiriseposta.Name = "lblgiriseposta";
+            this.lblgiriseposta.Size = new System.Drawing.Size(99, 26);
+            this.lblgiriseposta.TabIndex = 11;
+            this.lblgiriseposta.Text = "E Posta:";
+            // 
+            // txtgirissifre
+            // 
+            this.txtgirissifre.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(75)))), ((int)(((byte)(75)))), ((int)(((byte)(75)))));
+            this.txtgirissifre.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtgirissifre.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.txtgirissifre.ForeColor = System.Drawing.SystemColors.MenuBar;
+            this.txtgirissifre.Location = new System.Drawing.Point(271, 368);
+            this.txtgirissifre.Name = "txtgirissifre";
+            this.txtgirissifre.Size = new System.Drawing.Size(245, 30);
+            this.txtgirissifre.TabIndex = 1;
+            this.txtgirissifre.UseSystemPasswordChar = true;
+            // 
+            // txtgiriseposta
+            // 
+            this.txtgiriseposta.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(75)))), ((int)(((byte)(75)))), ((int)(((byte)(75)))));
+            this.txtgiriseposta.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtgiriseposta.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.txtgiriseposta.ForeColor = System.Drawing.SystemColors.MenuBar;
+            this.txtgiriseposta.Location = new System.Drawing.Point(271, 289);
+            this.txtgiriseposta.Name = "txtgiriseposta";
+            this.txtgiriseposta.Size = new System.Drawing.Size(245, 30);
+            this.txtgiriseposta.TabIndex = 0;
+            // 
+            // btngirisKayitOl
+            // 
+            this.btngirisKayitOl.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(229)))), ((int)(((byte)(9)))), ((int)(((byte)(20)))));
+            this.btngirisKayitOl.FlatAppearance.BorderSize = 0;
+            this.btngirisKayitOl.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btngirisKayitOl.Font = new System.Drawing.Font("Arial", 13.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.btngirisKayitOl.Location = new System.Drawing.Point(403, 421);
+            this.btngirisKayitOl.Name = "btngirisKayitOl";
+            this.btngirisKayitOl.Size = new System.Drawing.Size(113, 43);
+            this.btngirisKayitOl.TabIndex = 3;
+            this.btngirisKayitOl.Text = "Kayıt Ol";
+            this.btngirisKayitOl.UseVisualStyleBackColor = false;
+            this.btngirisKayitOl.Click += new System.EventHandler(this.btnKayitOl_Click);
+            // 
+            // btngirisGiris
+            // 
+            this.btngirisGiris.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(229)))), ((int)(((byte)(9)))), ((int)(((byte)(20)))));
+            this.btngirisGiris.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(229)))), ((int)(((byte)(9)))), ((int)(((byte)(20)))));
+            this.btngirisGiris.FlatAppearance.BorderSize = 0;
+            this.btngirisGiris.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btngirisGiris.Font = new System.Drawing.Font("Arial", 13.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.btngirisGiris.Location = new System.Drawing.Point(271, 421);
+            this.btngirisGiris.Name = "btngirisGiris";
+            this.btngirisGiris.Size = new System.Drawing.Size(117, 43);
+            this.btngirisGiris.TabIndex = 2;
+            this.btngirisGiris.Text = "Giris";
+            this.btngirisGiris.UseVisualStyleBackColor = false;
+            this.btngirisGiris.Click += new System.EventHandler(this.btnGiris_Click);
+            // 
+            // lblgirisbilgilendir
+            // 
+            this.lblgirisbilgilendir.AutoSize = true;
+            this.lblgirisbilgilendir.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(11)))), ((int)(((byte)(11)))), ((int)(((byte)(11)))));
+            this.lblgirisbilgilendir.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.lblgirisbilgilendir.Location = new System.Drawing.Point(267, 487);
+            this.lblgirisbilgilendir.MinimumSize = new System.Drawing.Size(247, 40);
+            this.lblgirisbilgilendir.Name = "lblgirisbilgilendir";
+            this.lblgirisbilgilendir.Size = new System.Drawing.Size(247, 40);
+            this.lblgirisbilgilendir.TabIndex = 3;
+            // 
+            // pnlkayıtSayfası2
+            // 
+            this.pnlkayıtSayfası2.BackgroundImage = Image.FromFile("..\\resorce\\arkaplan ve icon\\KayıtSayfası.jpg");
+            this.pnlkayıtSayfası2.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.pnlkayıtSayfası2.Controls.Add(this.lblkayıt2bilgilendir);
+            this.pnlkayıtSayfası2.Controls.Add(this.pickayıt2anime);
+            this.pnlkayıtSayfası2.Controls.Add(this.pickayıt2reality);
+            this.pnlkayıtSayfası2.Controls.Add(this.lblkayıt2anime);
+            this.pnlkayıtSayfası2.Controls.Add(this.lblkayıt2reality);
+            this.pnlkayıtSayfası2.Controls.Add(this.btnkayıt2kayıtol);
+            this.pnlkayıtSayfası2.Controls.Add(this.pickayıt2drama);
+            this.pnlkayıtSayfası2.Controls.Add(this.pickayıt2bilimkurgu);
+            this.pnlkayıtSayfası2.Controls.Add(this.pickayıt2romantizim);
+            this.pnlkayıtSayfası2.Controls.Add(this.pickayıt2korku);
+            this.pnlkayıtSayfası2.Controls.Add(this.pickayıt2gerilim);
+            this.pnlkayıtSayfası2.Controls.Add(this.pickayıt2cocuk);
+            this.pnlkayıtSayfası2.Controls.Add(this.pickayıt2bilimvedoga);
+            this.pnlkayıtSayfası2.Controls.Add(this.pickayıt2belgesel);
+            this.pnlkayıtSayfası2.Controls.Add(this.pickayıt2komedi);
+            this.pnlkayıtSayfası2.Controls.Add(this.pickayıt2aksiyon);
+            this.pnlkayıtSayfası2.Controls.Add(this.lblkayıt2drama);
+            this.pnlkayıtSayfası2.Controls.Add(this.lblkayıt2romantizim);
+            this.pnlkayıtSayfası2.Controls.Add(this.lblkayıt2gerilim);
+            this.pnlkayıtSayfası2.Controls.Add(this.lblkayıt2cocukveaile);
+            this.pnlkayıtSayfası2.Controls.Add(this.lblkayıt2bilimkurgu);
+            this.pnlkayıtSayfası2.Controls.Add(this.lblkayıt2korku);
+            this.pnlkayıtSayfası2.Controls.Add(this.lblkayıt2belgesel);
+            this.pnlkayıtSayfası2.Controls.Add(this.lblkayıt2komedi);
+            this.pnlkayıtSayfası2.Controls.Add(this.lblkayıt2bilimvedoga);
+            this.pnlkayıtSayfası2.Controls.Add(this.lblkayıt2aksiyon);
+            this.pnlkayıtSayfası2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pnlkayıtSayfası2.Location = new System.Drawing.Point(0, 0);
+            this.pnlkayıtSayfası2.Name = "pnlkayıtSayfası2";
+            this.pnlkayıtSayfası2.Size = new System.Drawing.Size(782, 553);
+            this.pnlkayıtSayfası2.TabIndex = 6;
+            // 
+            // lblkayıt2bilgilendir
+            // 
+            this.lblkayıt2bilgilendir.AutoSize = true;
+            this.lblkayıt2bilgilendir.Font = new System.Drawing.Font("Arial", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.lblkayıt2bilgilendir.Location = new System.Drawing.Point(106, 451);
+            this.lblkayıt2bilgilendir.MinimumSize = new System.Drawing.Size(250, 40);
+            this.lblkayıt2bilgilendir.Name = "lblkayıt2bilgilendir";
+            this.lblkayıt2bilgilendir.Size = new System.Drawing.Size(250, 40);
+            this.lblkayıt2bilgilendir.TabIndex = 51;
+            // 
+            // pickayıt2anime
+            // 
+            this.pickayıt2anime.BackColor = System.Drawing.SystemColors.ActiveBorder;
+            this.pickayıt2anime.Image = Image.FromFile("..\\resorce\\kategoriler\\anime.jpg");
+            this.pickayıt2anime.Location = new System.Drawing.Point(598, 306);
+            this.pickayıt2anime.Name = "pickayıt2anime";
+            this.pickayıt2anime.Size = new System.Drawing.Size(90, 60);
+            this.pickayıt2anime.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pickayıt2anime.TabIndex = 50;
+            this.pickayıt2anime.TabStop = false;
+            // 
+            // pickayıt2reality
+            // 
+            this.pickayıt2reality.BackColor = System.Drawing.SystemColors.ActiveBorder;
+            this.pickayıt2reality.Image = Image.FromFile("..\\resorce\\kategoriler\\reality.jpg");
+            this.pickayıt2reality.Location = new System.Drawing.Point(598, 375);
+            this.pickayıt2reality.Name = "pickayıt2reality";
+            this.pickayıt2reality.Size = new System.Drawing.Size(90, 60);
+            this.pickayıt2reality.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pickayıt2reality.TabIndex = 49;
+            this.pickayıt2reality.TabStop = false;
+            // 
+            // lblkayıt2anime
+            // 
+            this.lblkayıt2anime.AutoSize = true;
+            this.lblkayıt2anime.BackColor = System.Drawing.Color.DimGray;
+            this.lblkayıt2anime.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.lblkayıt2anime.Location = new System.Drawing.Point(476, 320);
+            this.lblkayıt2anime.MinimumSize = new System.Drawing.Size(180, 35);
+            this.lblkayıt2anime.Name = "lblkayıt2anime";
+            this.lblkayıt2anime.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            this.lblkayıt2anime.Size = new System.Drawing.Size(180, 35);
+            this.lblkayıt2anime.TabIndex = 10;
+            this.lblkayıt2anime.Text = "Anime";
+            this.lblkayıt2anime.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lblkayıt2anime.Click += new System.EventHandler(this.lblkayıt2anime_Click);
+            // 
+            // lblkayıt2reality
+            // 
+            this.lblkayıt2reality.AutoSize = true;
+            this.lblkayıt2reality.BackColor = System.Drawing.Color.DimGray;
+            this.lblkayıt2reality.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.lblkayıt2reality.Location = new System.Drawing.Point(475, 387);
+            this.lblkayıt2reality.MinimumSize = new System.Drawing.Size(180, 35);
+            this.lblkayıt2reality.Name = "lblkayıt2reality";
+            this.lblkayıt2reality.Padding = new System.Windows.Forms.Padding(10, 0, 0, 2);
+            this.lblkayıt2reality.Size = new System.Drawing.Size(180, 38);
+            this.lblkayıt2reality.TabIndex = 12;
+            this.lblkayıt2reality.Text = "Reality \r\nProgram";
+            this.lblkayıt2reality.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lblkayıt2reality.Click += new System.EventHandler(this.lblkayıt2reality_Click);
+            // 
+            // btnkayıt2kayıtol
+            // 
+            this.btnkayıt2kayıtol.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
+            this.btnkayıt2kayıtol.FlatAppearance.BorderColor = System.Drawing.Color.White;
+            this.btnkayıt2kayıtol.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnkayıt2kayıtol.Font = new System.Drawing.Font("Arial", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.btnkayıt2kayıtol.ForeColor = System.Drawing.SystemColors.Control;
+            this.btnkayıt2kayıtol.Location = new System.Drawing.Point(568, 451);
+            this.btnkayıt2kayıtol.Name = "btnkayıt2kayıtol";
+            this.btnkayıt2kayıtol.Size = new System.Drawing.Size(120, 37);
+            this.btnkayıt2kayıtol.TabIndex = 13;
+            this.btnkayıt2kayıtol.Text = "Kaydet";
+            this.btnkayıt2kayıtol.UseVisualStyleBackColor = false;
+            this.btnkayıt2kayıtol.Click += new System.EventHandler(this.btnkayıt2KayitKaydet_Click);
+            // 
+            // pickayıt2drama
+            // 
+            this.pickayıt2drama.BackColor = System.Drawing.SystemColors.ActiveBorder;
+            this.pickayıt2drama.Image = Image.FromFile("..\\resorce\\kategoriler\\drama.jpg");
+            this.pickayıt2drama.Location = new System.Drawing.Point(598, 168);
+            this.pickayıt2drama.Name = "pickayıt2drama";
+            this.pickayıt2drama.Size = new System.Drawing.Size(90, 60);
+            this.pickayıt2drama.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pickayıt2drama.TabIndex = 46;
+            this.pickayıt2drama.TabStop = false;
+            // 
+            // pickayıt2bilimkurgu
+            // 
+            this.pickayıt2bilimkurgu.BackColor = System.Drawing.SystemColors.ActiveBorder;
+            this.pickayıt2bilimkurgu.Image = Image.FromFile("..\\resorce\\kategoriler\\bilim_kurgu.png");
+            this.pickayıt2bilimkurgu.Location = new System.Drawing.Point(225, 375);
+            this.pickayıt2bilimkurgu.Name = "pickayıt2bilimkurgu";
+            this.pickayıt2bilimkurgu.Size = new System.Drawing.Size(90, 60);
+            this.pickayıt2bilimkurgu.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pickayıt2bilimkurgu.TabIndex = 45;
+            this.pickayıt2bilimkurgu.TabStop = false;
+            // 
+            // pickayıt2romantizim
+            // 
+            this.pickayıt2romantizim.BackColor = System.Drawing.SystemColors.ActiveBorder;
+            this.pickayıt2romantizim.Image = Image.FromFile("..\\resorce\\kategoriler\\romantizm.jpg");
+            this.pickayıt2romantizim.Location = new System.Drawing.Point(225, 238);
+            this.pickayıt2romantizim.Name = "pickayıt2romantizim";
+            this.pickayıt2romantizim.Size = new System.Drawing.Size(90, 60);
+            this.pickayıt2romantizim.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pickayıt2romantizim.TabIndex = 44;
+            this.pickayıt2romantizim.TabStop = false;
+            // 
+            // pickayıt2korku
+            // 
+            this.pickayıt2korku.BackColor = System.Drawing.SystemColors.ActiveBorder;
+            this.pickayıt2korku.Image = Image.FromFile("..\\resorce\\kategoriler\\korku.jpeg");
+            this.pickayıt2korku.Location = new System.Drawing.Point(598, 101);
+            this.pickayıt2korku.Name = "pickayıt2korku";
+            this.pickayıt2korku.Size = new System.Drawing.Size(90, 60);
+            this.pickayıt2korku.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pickayıt2korku.TabIndex = 43;
+            this.pickayıt2korku.TabStop = false;
+            // 
+            // pickayıt2gerilim
+            // 
+            this.pickayıt2gerilim.BackColor = System.Drawing.SystemColors.ActiveBorder;
+            this.pickayıt2gerilim.Image = Image.FromFile("..\\resorce\\kategoriler\\gerilim.jpg");
+            this.pickayıt2gerilim.Location = new System.Drawing.Point(598, 238);
+            this.pickayıt2gerilim.Name = "pickayıt2gerilim";
+            this.pickayıt2gerilim.Size = new System.Drawing.Size(90, 60);
+            this.pickayıt2gerilim.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pickayıt2gerilim.TabIndex = 42;
+            this.pickayıt2gerilim.TabStop = false;
+            // 
+            // pickayıt2cocuk
+            // 
+            this.pickayıt2cocuk.BackColor = System.Drawing.SystemColors.ActiveBorder;
+            this.pickayıt2cocuk.Image = Image.FromFile("..\\resorce\\kategoriler\\cocukveaile.jpg");
+            this.pickayıt2cocuk.Location = new System.Drawing.Point(598, 32);
+            this.pickayıt2cocuk.Name = "pickayıt2cocuk";
+            this.pickayıt2cocuk.Size = new System.Drawing.Size(90, 60);
+            this.pickayıt2cocuk.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pickayıt2cocuk.TabIndex = 41;
+            this.pickayıt2cocuk.TabStop = false;
+            // 
+            // pickayıt2bilimvedoga
+            // 
+            this.pickayıt2bilimvedoga.BackColor = System.Drawing.SystemColors.ActiveBorder;
+            this.pickayıt2bilimvedoga.Image = Image.FromFile("..\\resorce\\kategoriler\\bilimvedoga.jpg");
+            this.pickayıt2bilimvedoga.Location = new System.Drawing.Point(225, 306);
+            this.pickayıt2bilimvedoga.Name = "pickayıt2bilimvedoga";
+            this.pickayıt2bilimvedoga.Size = new System.Drawing.Size(90, 60);
+            this.pickayıt2bilimvedoga.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pickayıt2bilimvedoga.TabIndex = 40;
+            this.pickayıt2bilimvedoga.TabStop = false;
+            // 
+            // pickayıt2belgesel
+            // 
+            this.pickayıt2belgesel.BackColor = System.Drawing.SystemColors.ActiveBorder;
+            this.pickayıt2belgesel.Image = Image.FromFile("..\\resorce\\kategoriler\\belgesel.jpg");
+            this.pickayıt2belgesel.Location = new System.Drawing.Point(225, 168);
+            this.pickayıt2belgesel.Name = "pickayıt2belgesel";
+            this.pickayıt2belgesel.Size = new System.Drawing.Size(90, 60);
+            this.pickayıt2belgesel.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pickayıt2belgesel.TabIndex = 39;
+            this.pickayıt2belgesel.TabStop = false;
+            // 
+            // pickayıt2komedi
+            // 
+            this.pickayıt2komedi.BackColor = System.Drawing.SystemColors.ActiveBorder;
+            this.pickayıt2komedi.Image = Image.FromFile("..\\resorce\\kategoriler\\komedi.jpg");
+            this.pickayıt2komedi.Location = new System.Drawing.Point(224, 100);
+            this.pickayıt2komedi.Name = "pickayıt2komedi";
+            this.pickayıt2komedi.Size = new System.Drawing.Size(90, 60);
+            this.pickayıt2komedi.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pickayıt2komedi.TabIndex = 38;
+            this.pickayıt2komedi.TabStop = false;
+            // 
+            // pickayıt2aksiyon
+            // 
+            this.pickayıt2aksiyon.BackColor = System.Drawing.SystemColors.ActiveBorder;
+            this.pickayıt2aksiyon.Image = Image.FromFile("..\\resorce\\kategoriler\\aksiyon.jpg");
+            this.pickayıt2aksiyon.Location = new System.Drawing.Point(224, 32);
+            this.pickayıt2aksiyon.Name = "pickayıt2aksiyon";
+            this.pickayıt2aksiyon.Size = new System.Drawing.Size(90, 60);
+            this.pickayıt2aksiyon.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pickayıt2aksiyon.TabIndex = 37;
+            this.pickayıt2aksiyon.TabStop = false;
+            // 
+            // lblkayıt2drama
+            // 
+            this.lblkayıt2drama.AutoSize = true;
+            this.lblkayıt2drama.BackColor = System.Drawing.Color.DimGray;
+            this.lblkayıt2drama.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.lblkayıt2drama.Location = new System.Drawing.Point(475, 182);
+            this.lblkayıt2drama.MinimumSize = new System.Drawing.Size(180, 35);
+            this.lblkayıt2drama.Name = "lblkayıt2drama";
+            this.lblkayıt2drama.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            this.lblkayıt2drama.Size = new System.Drawing.Size(180, 35);
+            this.lblkayıt2drama.TabIndex = 6;
+            this.lblkayıt2drama.Text = "Drama";
+            this.lblkayıt2drama.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lblkayıt2drama.Click += new System.EventHandler(this.lblkayıt2drama_Click);
+            // 
+            // lblkayıt2romantizim
+            // 
+            this.lblkayıt2romantizim.AutoSize = true;
+            this.lblkayıt2romantizim.BackColor = System.Drawing.Color.DimGray;
+            this.lblkayıt2romantizim.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.lblkayıt2romantizim.Location = new System.Drawing.Point(105, 251);
+            this.lblkayıt2romantizim.MinimumSize = new System.Drawing.Size(180, 35);
+            this.lblkayıt2romantizim.Name = "lblkayıt2romantizim";
+            this.lblkayıt2romantizim.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            this.lblkayıt2romantizim.Size = new System.Drawing.Size(180, 35);
+            this.lblkayıt2romantizim.TabIndex = 7;
+            this.lblkayıt2romantizim.Text = "Romantizim";
+            this.lblkayıt2romantizim.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lblkayıt2romantizim.Click += new System.EventHandler(this.lblkayıt2romantizim_Click);
+            // 
+            // lblkayıt2gerilim
+            // 
+            this.lblkayıt2gerilim.AutoSize = true;
+            this.lblkayıt2gerilim.BackColor = System.Drawing.Color.DimGray;
+            this.lblkayıt2gerilim.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.lblkayıt2gerilim.Location = new System.Drawing.Point(477, 251);
+            this.lblkayıt2gerilim.MinimumSize = new System.Drawing.Size(180, 35);
+            this.lblkayıt2gerilim.Name = "lblkayıt2gerilim";
+            this.lblkayıt2gerilim.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            this.lblkayıt2gerilim.Size = new System.Drawing.Size(180, 35);
+            this.lblkayıt2gerilim.TabIndex = 8;
+            this.lblkayıt2gerilim.Text = "Gerilim";
+            this.lblkayıt2gerilim.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lblkayıt2gerilim.Click += new System.EventHandler(this.lblkayıt2gerilim_Click);
+            // 
+            // lblkayıt2cocukveaile
+            // 
+            this.lblkayıt2cocukveaile.AutoSize = true;
+            this.lblkayıt2cocukveaile.BackColor = System.Drawing.Color.DimGray;
+            this.lblkayıt2cocukveaile.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.lblkayıt2cocukveaile.Location = new System.Drawing.Point(475, 46);
+            this.lblkayıt2cocukveaile.MinimumSize = new System.Drawing.Size(180, 35);
+            this.lblkayıt2cocukveaile.Name = "lblkayıt2cocukveaile";
+            this.lblkayıt2cocukveaile.Padding = new System.Windows.Forms.Padding(10, 6, 0, 0);
+            this.lblkayıt2cocukveaile.Size = new System.Drawing.Size(180, 35);
+            this.lblkayıt2cocukveaile.TabIndex = 2;
+            this.lblkayıt2cocukveaile.Text = "Çocuk ve Aile\r\n";
+            this.lblkayıt2cocukveaile.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lblkayıt2cocukveaile.Click += new System.EventHandler(this.lblkayıt2cocukveaile_Click);
+            // 
+            // lblkayıt2bilimkurgu
+            // 
+            this.lblkayıt2bilimkurgu.AutoSize = true;
+            this.lblkayıt2bilimkurgu.BackColor = System.Drawing.Color.DimGray;
+            this.lblkayıt2bilimkurgu.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.lblkayıt2bilimkurgu.Location = new System.Drawing.Point(105, 387);
+            this.lblkayıt2bilimkurgu.MinimumSize = new System.Drawing.Size(180, 35);
+            this.lblkayıt2bilimkurgu.Name = "lblkayıt2bilimkurgu";
+            this.lblkayıt2bilimkurgu.Padding = new System.Windows.Forms.Padding(10, 0, 0, 2);
+            this.lblkayıt2bilimkurgu.Size = new System.Drawing.Size(180, 38);
+            this.lblkayıt2bilimkurgu.TabIndex = 11;
+            this.lblkayıt2bilimkurgu.Text = "Bilim Kurgu ve\r\nFantastik";
+            this.lblkayıt2bilimkurgu.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lblkayıt2bilimkurgu.Click += new System.EventHandler(this.lblkayıt2bilimkurgu_Click);
+            // 
+            // lblkayıt2korku
+            // 
+            this.lblkayıt2korku.AutoSize = true;
+            this.lblkayıt2korku.BackColor = System.Drawing.Color.DimGray;
+            this.lblkayıt2korku.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.lblkayıt2korku.Location = new System.Drawing.Point(475, 113);
+            this.lblkayıt2korku.MinimumSize = new System.Drawing.Size(180, 35);
+            this.lblkayıt2korku.Name = "lblkayıt2korku";
+            this.lblkayıt2korku.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            this.lblkayıt2korku.Size = new System.Drawing.Size(180, 35);
+            this.lblkayıt2korku.TabIndex = 4;
+            this.lblkayıt2korku.Text = "Korku";
+            this.lblkayıt2korku.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lblkayıt2korku.Click += new System.EventHandler(this.lblkayıt2korku_Click);
+            // 
+            // lblkayıt2belgesel
+            // 
+            this.lblkayıt2belgesel.AutoSize = true;
+            this.lblkayıt2belgesel.BackColor = System.Drawing.Color.DimGray;
+            this.lblkayıt2belgesel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.lblkayıt2belgesel.Location = new System.Drawing.Point(105, 182);
+            this.lblkayıt2belgesel.MinimumSize = new System.Drawing.Size(180, 35);
+            this.lblkayıt2belgesel.Name = "lblkayıt2belgesel";
+            this.lblkayıt2belgesel.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            this.lblkayıt2belgesel.Size = new System.Drawing.Size(180, 35);
+            this.lblkayıt2belgesel.TabIndex = 5;
+            this.lblkayıt2belgesel.Text = "Belgesel";
+            this.lblkayıt2belgesel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lblkayıt2belgesel.Click += new System.EventHandler(this.lblkayıt2belgesel_Click);
+            // 
+            // lblkayıt2komedi
+            // 
+            this.lblkayıt2komedi.AutoSize = true;
+            this.lblkayıt2komedi.BackColor = System.Drawing.Color.DimGray;
+            this.lblkayıt2komedi.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.lblkayıt2komedi.Location = new System.Drawing.Point(105, 115);
+            this.lblkayıt2komedi.MinimumSize = new System.Drawing.Size(180, 35);
+            this.lblkayıt2komedi.Name = "lblkayıt2komedi";
+            this.lblkayıt2komedi.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            this.lblkayıt2komedi.Size = new System.Drawing.Size(180, 35);
+            this.lblkayıt2komedi.TabIndex = 3;
+            this.lblkayıt2komedi.Text = "Komedi";
+            this.lblkayıt2komedi.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lblkayıt2komedi.Click += new System.EventHandler(this.lblkayıt2komedi_Click);
+            // 
+            // lblkayıt2bilimvedoga
+            // 
+            this.lblkayıt2bilimvedoga.AutoSize = true;
+            this.lblkayıt2bilimvedoga.BackColor = System.Drawing.Color.DimGray;
+            this.lblkayıt2bilimvedoga.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.lblkayıt2bilimvedoga.Location = new System.Drawing.Point(105, 318);
+            this.lblkayıt2bilimvedoga.MinimumSize = new System.Drawing.Size(180, 35);
+            this.lblkayıt2bilimvedoga.Name = "lblkayıt2bilimvedoga";
+            this.lblkayıt2bilimvedoga.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            this.lblkayıt2bilimvedoga.Size = new System.Drawing.Size(180, 35);
+            this.lblkayıt2bilimvedoga.TabIndex = 9;
+            this.lblkayıt2bilimvedoga.Text = "Bilim ve Doğa";
+            this.lblkayıt2bilimvedoga.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lblkayıt2bilimvedoga.Click += new System.EventHandler(this.lblkayıt2bilimvedoga_Click);
+            // 
+            // lblkayıt2aksiyon
+            // 
+            this.lblkayıt2aksiyon.AutoSize = true;
+            this.lblkayıt2aksiyon.BackColor = System.Drawing.Color.DimGray;
+            this.lblkayıt2aksiyon.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.lblkayıt2aksiyon.Location = new System.Drawing.Point(105, 46);
+            this.lblkayıt2aksiyon.MinimumSize = new System.Drawing.Size(180, 35);
+            this.lblkayıt2aksiyon.Name = "lblkayıt2aksiyon";
+            this.lblkayıt2aksiyon.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            this.lblkayıt2aksiyon.Size = new System.Drawing.Size(180, 35);
+            this.lblkayıt2aksiyon.TabIndex = 1;
+            this.lblkayıt2aksiyon.Text = "Aksiyon";
+            this.lblkayıt2aksiyon.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lblkayıt2aksiyon.Click += new System.EventHandler(this.lblkayıt2aksiyon_Click);
+            // 
+            // pnlkayıtSayfası
+            // 
+            this.pnlkayıtSayfası.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
+            this.pnlkayıtSayfası.BackgroundImage = Image.FromFile("..\\resorce\\arkaplan ve icon\\KayıtSayfası.jpg");
+            this.pnlkayıtSayfası.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.pnlkayıtSayfası.Controls.Add(this.btnkayıtgeri);
+            this.pnlkayıtSayfası.Controls.Add(this.txtkayıtdgtarih);
+            this.pnlkayıtSayfası.Controls.Add(this.lblkayıtdgtarihi);
+            this.pnlkayıtSayfası.Controls.Add(this.lblkayıtad);
+            this.pnlkayıtSayfası.Controls.Add(this.txtkayıtad);
+            this.pnlkayıtSayfası.Controls.Add(this.lblkayıtbilgilendir);
+            this.pnlkayıtSayfası.Controls.Add(this.lblkayıtsorun);
+            this.pnlkayıtSayfası.Controls.Add(this.btnkayıtdevamet);
+            this.pnlkayıtSayfası.Controls.Add(this.lblkayıtsifre);
+            this.pnlkayıtSayfası.Controls.Add(this.lblkayıteposta);
+            this.pnlkayıtSayfası.Controls.Add(this.txtkayıtsifre);
+            this.pnlkayıtSayfası.Controls.Add(this.txtkayıteposta);
+            this.pnlkayıtSayfası.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pnlkayıtSayfası.Location = new System.Drawing.Point(0, 0);
+            this.pnlkayıtSayfası.Name = "pnlkayıtSayfası";
+            this.pnlkayıtSayfası.Size = new System.Drawing.Size(782, 553);
+            this.pnlkayıtSayfası.TabIndex = 0;
+            // 
+            // btnkayıtgeri
+            // 
+            this.btnkayıtgeri.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
+            this.btnkayıtgeri.FlatAppearance.BorderColor = System.Drawing.Color.White;
+            this.btnkayıtgeri.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnkayıtgeri.Font = new System.Drawing.Font("Arial", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.btnkayıtgeri.ForeColor = System.Drawing.SystemColors.Control;
+            this.btnkayıtgeri.Location = new System.Drawing.Point(259, 468);
+            this.btnkayıtgeri.Name = "btnkayıtgeri";
+            this.btnkayıtgeri.Padding = new System.Windows.Forms.Padding(0, 3, 0, 0);
+            this.btnkayıtgeri.Size = new System.Drawing.Size(124, 39);
+            this.btnkayıtgeri.TabIndex = 6;
+            this.btnkayıtgeri.Text = "Geri";
+            this.btnkayıtgeri.UseVisualStyleBackColor = false;
+            this.btnkayıtgeri.Click += new System.EventHandler(this.btngeri_Click);
+            // 
+            // txtkayıtdgtarih
+            // 
+            this.txtkayıtdgtarih.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(75)))), ((int)(((byte)(75)))), ((int)(((byte)(75)))));
+            this.txtkayıtdgtarih.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtkayıtdgtarih.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.txtkayıtdgtarih.ForeColor = System.Drawing.SystemColors.ActiveBorder;
+            this.txtkayıtdgtarih.Location = new System.Drawing.Point(259, 264);
+            this.txtkayıtdgtarih.Mask = "0000/00/00";
+            this.txtkayıtdgtarih.Name = "txtkayıtdgtarih";
+            this.txtkayıtdgtarih.Size = new System.Drawing.Size(261, 27);
+            this.txtkayıtdgtarih.TabIndex = 4;
+            this.txtkayıtdgtarih.ValidatingType = typeof(System.DateTime);
+            // 
+            // lblkayıtdgtarihi
+            // 
+            this.lblkayıtdgtarihi.AutoSize = true;
+            this.lblkayıtdgtarihi.BackColor = System.Drawing.Color.Transparent;
+            this.lblkayıtdgtarihi.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.lblkayıtdgtarihi.ForeColor = System.Drawing.SystemColors.ActiveBorder;
+            this.lblkayıtdgtarihi.Location = new System.Drawing.Point(258, 230);
+            this.lblkayıtdgtarihi.Name = "lblkayıtdgtarihi";
+            this.lblkayıtdgtarihi.Size = new System.Drawing.Size(119, 19);
+            this.lblkayıtdgtarihi.TabIndex = 30;
+            this.lblkayıtdgtarihi.Text = "Doğum Tarihi:";
+            // 
+            // lblkayıtad
+            // 
+            this.lblkayıtad.AutoSize = true;
+            this.lblkayıtad.BackColor = System.Drawing.Color.Transparent;
+            this.lblkayıtad.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.lblkayıtad.ForeColor = System.Drawing.SystemColors.ActiveBorder;
+            this.lblkayıtad.Location = new System.Drawing.Point(257, 27);
+            this.lblkayıtad.Name = "lblkayıtad";
+            this.lblkayıtad.Size = new System.Drawing.Size(36, 19);
+            this.lblkayıtad.TabIndex = 29;
+            this.lblkayıtad.Text = "Ad:";
+            // 
+            // txtkayıtad
+            // 
+            this.txtkayıtad.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(75)))), ((int)(((byte)(75)))), ((int)(((byte)(75)))));
+            this.txtkayıtad.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtkayıtad.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.txtkayıtad.ForeColor = System.Drawing.SystemColors.MenuBar;
+            this.txtkayıtad.Location = new System.Drawing.Point(259, 56);
+            this.txtkayıtad.Margin = new System.Windows.Forms.Padding(5);
+            this.txtkayıtad.Name = "txtkayıtad";
+            this.txtkayıtad.Size = new System.Drawing.Size(266, 27);
+            this.txtkayıtad.TabIndex = 1;
+            // 
+            // lblkayıtbilgilendir
+            // 
+            this.lblkayıtbilgilendir.AutoSize = true;
+            this.lblkayıtbilgilendir.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.lblkayıtbilgilendir.ForeColor = System.Drawing.SystemColors.ActiveBorder;
+            this.lblkayıtbilgilendir.Location = new System.Drawing.Point(258, 315);
+            this.lblkayıtbilgilendir.MinimumSize = new System.Drawing.Size(266, 52);
+            this.lblkayıtbilgilendir.Name = "lblkayıtbilgilendir";
+            this.lblkayıtbilgilendir.Size = new System.Drawing.Size(266, 52);
+            this.lblkayıtbilgilendir.TabIndex = 28;
+            // 
+            // lblkayıtsorun
+            // 
+            this.lblkayıtsorun.AutoSize = true;
+            this.lblkayıtsorun.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.lblkayıtsorun.ForeColor = System.Drawing.SystemColors.ActiveBorder;
+            this.lblkayıtsorun.Location = new System.Drawing.Point(257, 373);
+            this.lblkayıtsorun.MinimumSize = new System.Drawing.Size(266, 80);
+            this.lblkayıtsorun.Name = "lblkayıtsorun";
+            this.lblkayıtsorun.Size = new System.Drawing.Size(266, 80);
+            this.lblkayıtsorun.TabIndex = 27;
+            // 
+            // btnkayıtdevamet
+            // 
+            this.btnkayıtdevamet.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
+            this.btnkayıtdevamet.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnkayıtdevamet.Font = new System.Drawing.Font("Arial", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.btnkayıtdevamet.ForeColor = System.Drawing.SystemColors.Control;
+            this.btnkayıtdevamet.Location = new System.Drawing.Point(401, 468);
+            this.btnkayıtdevamet.Name = "btnkayıtdevamet";
+            this.btnkayıtdevamet.Padding = new System.Windows.Forms.Padding(0, 3, 0, 0);
+            this.btnkayıtdevamet.Size = new System.Drawing.Size(124, 39);
+            this.btnkayıtdevamet.TabIndex = 5;
+            this.btnkayıtdevamet.Text = "Devam Et";
+            this.btnkayıtdevamet.UseVisualStyleBackColor = false;
+            this.btnkayıtdevamet.Click += new System.EventHandler(this.btnDevamEt_Click);
+            // 
+            // lblkayıtsifre
+            // 
+            this.lblkayıtsifre.AutoSize = true;
+            this.lblkayıtsifre.BackColor = System.Drawing.Color.Transparent;
+            this.lblkayıtsifre.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.lblkayıtsifre.ForeColor = System.Drawing.SystemColors.ActiveBorder;
+            this.lblkayıtsifre.Location = new System.Drawing.Point(258, 160);
+            this.lblkayıtsifre.Name = "lblkayıtsifre";
+            this.lblkayıtsifre.Size = new System.Drawing.Size(51, 19);
+            this.lblkayıtsifre.TabIndex = 26;
+            this.lblkayıtsifre.Text = "Şifre:";
+            // 
+            // lblkayıteposta
+            // 
+            this.lblkayıteposta.AutoSize = true;
+            this.lblkayıteposta.BackColor = System.Drawing.Color.Transparent;
+            this.lblkayıteposta.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.lblkayıteposta.ForeColor = System.Drawing.SystemColors.ActiveBorder;
+            this.lblkayıteposta.Location = new System.Drawing.Point(258, 94);
+            this.lblkayıteposta.Name = "lblkayıteposta";
+            this.lblkayıteposta.Size = new System.Drawing.Size(76, 19);
+            this.lblkayıteposta.TabIndex = 2;
+            this.lblkayıteposta.Text = "E Posta:";
+            // 
+            // txtkayıtsifre
+            // 
+            this.txtkayıtsifre.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(75)))), ((int)(((byte)(75)))), ((int)(((byte)(75)))));
+            this.txtkayıtsifre.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtkayıtsifre.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.txtkayıtsifre.ForeColor = System.Drawing.SystemColors.MenuBar;
+            this.txtkayıtsifre.Location = new System.Drawing.Point(259, 188);
+            this.txtkayıtsifre.Margin = new System.Windows.Forms.Padding(5);
+            this.txtkayıtsifre.Name = "txtkayıtsifre";
+            this.txtkayıtsifre.Size = new System.Drawing.Size(266, 27);
+            this.txtkayıtsifre.TabIndex = 3;
+            this.txtkayıtsifre.UseSystemPasswordChar = true;
+            // 
+            // txtkayıteposta
+            // 
+            this.txtkayıteposta.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(75)))), ((int)(((byte)(75)))), ((int)(((byte)(75)))));
+            this.txtkayıteposta.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtkayıteposta.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.txtkayıteposta.ForeColor = System.Drawing.SystemColors.MenuBar;
+            this.txtkayıteposta.Location = new System.Drawing.Point(260, 123);
+            this.txtkayıteposta.Margin = new System.Windows.Forms.Padding(5);
+            this.txtkayıteposta.Name = "txtkayıteposta";
+            this.txtkayıteposta.Size = new System.Drawing.Size(266, 27);
+            this.txtkayıteposta.TabIndex = 2;
+            // 
+            // GirisSayfasi
+            // 
+            this.AcceptButton = this.btngirisGiris;
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
+            this.BackColor = System.Drawing.Color.Black;
+            this.ClientSize = new System.Drawing.Size(782, 553);
+            this.Controls.Add(this.pnlgirispaneli);
+            this.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.ForeColor = System.Drawing.Color.White;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
+            this.Name = "GirisSayfasi";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.Text = "Netflix";
+            this.pnlgirispaneli.ResumeLayout(false);
+            this.pnlgirispaneli.PerformLayout();
+            this.pnlkayıtSayfası2.ResumeLayout(false);
+            this.pnlkayıtSayfası2.PerformLayout();
+            this.pnlkayıtSayfası.ResumeLayout(false);
+            this.pnlkayıtSayfası.PerformLayout();
+            this.ResumeLayout(false);
+
+        }
+
+        #endregion
+        private System.Windows.Forms.Panel pnlgirispaneli;
+        private Label lblgirisbilgilendir;
+        private Panel pnlkayıtSayfası;
+        private Button btnkayıtgeri;
+        private MaskedTextBox txtkayıtdgtarih;
+        private Label lblkayıtdgtarihi;
+        private Label lblkayıtad;
+        private TextBox txtkayıtad;
+        private Label lblkayıtbilgilendir;
+        private Label lblkayıtsorun;
+        private Button btnkayıtdevamet;
+        private Label lblkayıtsifre;
+        private Label lblkayıteposta;
+        private TextBox txtkayıtsifre;
+        private TextBox txtkayıteposta;
+        private Panel pnlkayıtSayfası2;
+        private Label lblkayıt2bilgilendir;
+        private PictureBox pickayıt2anime;
+        private PictureBox pickayıt2reality;
+        private Label lblkayıt2anime;
+        private Label lblkayıt2reality;
+        private Button btnkayıt2kayıtol;
+        private PictureBox pickayıt2drama;
+        private PictureBox pickayıt2bilimkurgu;
+        private PictureBox pickayıt2romantizim;
+        private PictureBox pickayıt2korku;
+        private PictureBox pickayıt2gerilim;
+        private PictureBox pickayıt2cocuk;
+        private PictureBox pickayıt2bilimvedoga;
+        private PictureBox pickayıt2belgesel;
+        private PictureBox pickayıt2komedi;
+        private PictureBox pickayıt2aksiyon;
+        private Label lblkayıt2drama;
+        private Label lblkayıt2romantizim;
+        private Label lblkayıt2gerilim;
+        private Label lblkayıt2cocukveaile;
+        private Label lblkayıt2bilimkurgu;
+        private Label lblkayıt2korku;
+        private Label lblkayıt2belgesel;
+        private Label lblkayıt2komedi;
+        private Label lblkayıt2bilimvedoga;
+        private Label lblkayıt2aksiyon;
+        private Label lblgirissifre;
+        private Label lblgiriseposta;
+        private TextBox txtgirissifre;
+        private TextBox txtgiriseposta;
+        private Button btngirisKayitOl;
+        private Button btngirisGiris;
+    }
+
+
+//------------------------- Buraya kadar olan kısım "GirisSayfasi" classına aittir.-------------------------
+
+
+
+
+
+
+//--------------------------------------- AnaForm Form Classı ----------------------------------------------
+
+public class AnaForm : Form
+    {
+        List<string> FilmListesi;
+        List<string> ÖnerilenFilmListesi;
+        List<string> TurAramaSonucListesi;
+        List<string> TurSecim;
+        List<string> AnlikArama;
+
+        Mysqlislemleri mysqlislemleri;
+        BağlantıBilgileriOku oku;
+
+        List<PictureBox> KartPanel;
+        List<Label> KartPanelAciklama;
+        List<Label> Bölümler;
+        List<Label> ZamanSayaclari;
+        StringBuilder Detaylar;
+        ProgramTur FilmDetay;
+
+        System.Windows.Forms.Panel önanapanel;
+        System.Windows.Forms.Panel önyanpanel;
+        System.Windows.Forms.ComboBox puanbox;
+
+        int PicBoyutX = 185, PicBoyutY = 294;
+        int LblBoyutX = 185, LblBoyutY = 40;
+        int secilenBölümİndexi = -1;
+        string KullaniciEposta;
+        int kalinanBölüm = -1, kalinanZaman = -1;
+        int puan = -1,puanVermeKontrol = 0;
+
+        public AnaForm()
+        {
+            InitializeComponent();
+            FilmListesi = new List<string>();
+            FilmDetay = new ProgramTur();
+            oku = new BağlantıBilgileriOku();
+            mysqlislemleri = new Mysqlislemleri(oku.password, oku.datasource, oku.port, oku.username);
+            TurAramaSonucListesi = new List<string>();
+            AnlikArama = new List<string>();
+            ÖnerilenFilmListesi = new List<string>();
+            Detaylar = new StringBuilder();
+            Bölümler = new List<Label>();
+            önyanpanel = new Panel();
+            önanapanel = new Panel();
+            ZamanSayaclari = new List<Label>();
+
+            PanelOlustur(önanapanel);
+            PanelOlustur(önyanpanel);
+
+            this.tbllayoutönpanel.RowCount = 1;
+            this.tbllayoutönpanel.ColumnCount = 1;
+        }
+
+        public void KullaniciGirisVerisiAl(string eposta)
+        {
+            // giriş formundan kullanıcnın girdiği e postayı çekme işlemi
+            KullaniciEposta = eposta;
+        }
+
+        private void PanelKontrolEt(List<string> Liste, List<string> Liste2, Panel panel)
+        {
+            // önerilen listesi dikkate alınarak kart oluşturma işlemleri
+            if (TurSecim == null)
+            {
+                if (Liste == null) Liste = FilmListesi;
+
+                tbllayoutönpanel.Controls.Clear();
+                tbllayoutönpanel.Controls.Add(panel);
+                panel.Dock = DockStyle.Fill;
+                panel.Visible = true;
+                KartOlustur(Liste, null, panel);
+            }
+            else
+            {
+                tbllayoutönpanel.Controls.Clear();
+                tbllayoutönpanel.Controls.Add(panel);
+                panel.Dock = DockStyle.Fill;
+                panel.Visible = true;
+                KartOlustur(Liste, Liste2, panel);
+            }
+        }
+
+        private void KartOlustur(List<string> Liste, List<string> Liste2, Panel panel)
+        {
+            // önanapanele uygun şekilde kartların oluşturulma işlemleri
+            panel.Controls.Clear();
+            int index = 1, Xartis = 0, Yartis = 0;
+            KartPanel = new List<PictureBox>();
+            KartPanelAciklama = new List<Label>();
+            int X = 5, Y = 27;
+
+            if (Liste2 != null)
+            {
+                ÖnerilenResimKartları(Liste2, panel, ref index, ref Xartis, ref Yartis, ref X, ref Y);
+
+                if (ÖnerilenFilmListesi.Count % 5 == 0) Yartis = 450;
+                else Yartis += 450;
+                Xartis = 0;
+                index = 1;
+
+                NormalResimKartları(Liste, panel, ref index, ref Xartis, ref Yartis, ref X, ref Y);
+            }
+            else NormalResimKartları(Liste, panel, ref index, ref Xartis, ref Yartis, ref X, ref Y);
+        }
+
+        private void NormalResimKartları(List<string> Liste, Panel panel, ref int index, ref int Xartis, ref int Yartis, ref int X, ref int Y)
+        {
+            foreach (var Film in Liste)
+            {
+                // Kartların PictureBox kısmı
+                System.Windows.Forms.PictureBox pcb = new PictureBox();
+                pcb.Size = new System.Drawing.Size(PicBoyutX, PicBoyutY);
+                pcb.Location = new System.Drawing.Point(X + Xartis, Y + Yartis);
+                pcb.Image = Image.FromFile($"..\\resorce\\Film Kapakları\\{Film}.jpg");
+                pcb.SizeMode = PictureBoxSizeMode.StretchImage;
+                pcb.Click += new System.EventHandler(this.AnaSayfaFilmTıkla);
+                pcb.Name = Film.ToString();
+
+                // Kartların Label Kısmı
+                System.Windows.Forms.Label label = new Label();
+                label.Text = Film;
+                label.ForeColor = Color.White;
+                label.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Regular,
+                    System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+                label.Size = new System.Drawing.Size(LblBoyutX, LblBoyutY);
+                label.Location = new System.Drawing.Point(X + Xartis, Y + PicBoyutY + Yartis);
+                label.BackColor = Color.FromArgb(50, 50, 50);
+                label.TextAlign = ContentAlignment.MiddleCenter;
+                label.Click += new System.EventHandler(this.AnaSayfaFilmTıkla);
+                label.Name = Film.ToString();
+
+                Xartis += 220;
+                if (index % 5 == 0 && index != 0)
+                {
+                    Yartis += 370;
+                    Xartis = 0;
+                }
+                KartPanel.Add(pcb);
+                KartPanelAciklama.Add(label);
+
+                panel.Controls.Add(pcb);
+                panel.Controls.Add(label);
+                index++;
+            }
+        }
+
+        private void ÖnerilenResimKartları(List<string> Liste2, Panel panel, ref int index, ref int Xartis, ref int Yartis, ref int X, ref int Y)
+        {
+            // önerilen filmler yazısının yazılması
+            System.Windows.Forms.Label ÖnerilenlerYazisi = new Label();
+            ÖnerilenlerYazisi.Text = "Sizin İçin Önerilenler";
+            ÖnerilenlerYazisi.ForeColor = Color.White;
+            ÖnerilenlerYazisi.Size = new System.Drawing.Size(300, 35);
+            ÖnerilenlerYazisi.Location = new System.Drawing.Point(5, 10);
+            ÖnerilenlerYazisi.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold,
+                System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            ÖnerilenlerYazisi.TextAlign = ContentAlignment.TopLeft;
+            önanapanel.Controls.Add(ÖnerilenlerYazisi);
+
+            X = 5;
+            Y = 45;
+
+            foreach (var Film in Liste2)
+            {
+                // Önerilen Kartların Picturebox Kısmı
+                System.Windows.Forms.PictureBox pcbÖner = new PictureBox();
+                pcbÖner.Size = new System.Drawing.Size(PicBoyutX, PicBoyutY);
+                pcbÖner.Location = new System.Drawing.Point(X + Xartis, Y + Yartis);
+                pcbÖner.Image = Image.FromFile($"..\\resorce\\Film Kapakları\\{Film}.jpg");
+                pcbÖner.SizeMode = PictureBoxSizeMode.StretchImage;
+                pcbÖner.Click += new System.EventHandler(this.AnaSayfaFilmTıkla);
+                pcbÖner.Name = Film.ToString() + " önerilen";
+
+                // Önerilen Kartların Label Kısmı
+                System.Windows.Forms.Label lblÖner = new Label();
+                lblÖner.Text = Film;
+                lblÖner.ForeColor = Color.White;
+                lblÖner.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Regular,
+                    System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+                lblÖner.Size = new System.Drawing.Size(LblBoyutX, LblBoyutY);
+                lblÖner.Location = new System.Drawing.Point(5 + Xartis, Y + PicBoyutY + Yartis);
+                lblÖner.BackColor = Color.DarkRed;
+                lblÖner.TextAlign = ContentAlignment.MiddleCenter;
+                lblÖner.Click += new System.EventHandler(this.AnaSayfaFilmTıkla);
+                lblÖner.Name = Film.ToString() + " önerilen";
+
+                Xartis += 220;
+                if (index % 5 == 0 && index != 0)
+                {
+                    Yartis += 370;
+                    Xartis = 0;
+                }
+                KartPanel.Add(pcbÖner);
+                KartPanelAciklama.Add(lblÖner);
+
+                panel.Controls.Add(pcbÖner);
+                panel.Controls.Add(lblÖner);
+                index++;
+            }
+        }
+
+        private void AnaSayfaFilmTıkla(object sender, EventArgs e)
+        {
+            // Hangi Resmin veya Labelin Seçildiğinin Bulunması
+            int index = 0, index2 = 0;
+
+            foreach (var pcb in KartPanel)
+            {
+                if (sender.GetHashCode() == pcb.GetHashCode()) break;
+                index++;
+            }
+
+            foreach (var lbl in KartPanelAciklama)
+            {
+                if (sender.GetHashCode() == lbl.GetHashCode()) break;
+                index2++;
+            }
+
+            if (index < KartPanel.Count)
+            {
+                if (KartPanel[index].Name.Contains(" önerilen"))
+                {
+                    string name = KartPanel[index].Name.Substring(0, KartPanel[index].Name.Length - 9);
+                    DetaySayfasıOlustur(FilmListesi.IndexOf(name));
+                }
+                else
+                {
+                    DetaySayfasıOlustur(FilmListesi.IndexOf(KartPanel[index].Name));
+                }
+            }
+
+            else if (index2 < KartPanelAciklama.Count)
+            {
+                if (KartPanel[index2].Name.Contains(" önerilen"))
+                {
+                    string name = KartPanel[index2].Name.Substring(0, KartPanel[index2].Name.Length - 9);
+                    DetaySayfasıOlustur(FilmListesi.IndexOf(name));
+                }
+                else
+                {
+                    DetaySayfasıOlustur(FilmListesi.IndexOf(KartPanelAciklama[index2].Name));
+                }
+            }
+        }
+
+        private void DetaySayfasıOlustur(int index)
+        {
+            // önyanpanelin görünür kılınıp önanapanelin görünürlüğünü yoketmek
+            tbllayoutönpanel.Controls.Remove(önanapanel);
+            tbllayoutönpanel.Controls.Add(önyanpanel);
+            önanapanel.Visible = false;
+            önyanpanel.Visible = true;
+            önyanpanel.Dock = DockStyle.Fill;
+
+            //0. indeks Uzunluk 1. indeks BolumSayisi 2. index Puan
+            mysqlislemleri.FilmDetay(FilmDetay, FilmListesi[index]);
+            mysqlislemleri.Filmİzlenmismi(ref kalinanBölüm, ref kalinanZaman, KullaniciEposta, FilmDetay.ProgramAd);
+            mysqlislemleri.PuanGöster(ref puan, KullaniciEposta, FilmDetay.ProgramAd);
+
+            DetayStringiOlustur(FilmDetay);
+            DetaySayfaComponentleri(index, FilmDetay.bölümsayisi);
+            Detaylar.Clear();
+            FilmDetay.Tur.Clear();
+        }
+
+        private void DetaySayfaComponentleri(int index, int bölümSayisi)
+        {
+            // Seçilen Filmin Resminin Bastırılması
+            System.Windows.Forms.PictureBox SecilenFilmResmi = new PictureBox();
+            SecilenFilmResmi.Size = new System.Drawing.Size(256, 390);
+            SecilenFilmResmi.Location = new System.Drawing.Point(30, 85);
+            SecilenFilmResmi.Image = Image.FromFile($"..\\resorce\\Film Kapakları\\{FilmListesi[index]}.jpg");
+            SecilenFilmResmi.SizeMode = PictureBoxSizeMode.StretchImage;
+            önyanpanel.Controls.Add(SecilenFilmResmi);
+
+            // Film Ad Detay Kısmı
+            System.Windows.Forms.Label SecilenFilmAd = new Label();
+            SecilenFilmAd.Text = FilmListesi[index] + "\n";
+            SecilenFilmAd.ForeColor = Color.White;
+            SecilenFilmAd.Size = new System.Drawing.Size(370, 40);
+            SecilenFilmAd.Location = new System.Drawing.Point(30, 480);
+            SecilenFilmAd.TextAlign = ContentAlignment.TopLeft;
+            önyanpanel.Controls.Add(SecilenFilmAd);
+
+            // Film Tür ve Diğer Detaylar
+            System.Windows.Forms.Label SecilenFilmDetay = new Label();
+            SecilenFilmDetay.Text = Detaylar.ToString();
+            SecilenFilmDetay.ForeColor = Color.White;
+            SecilenFilmDetay.Size = new System.Drawing.Size(370, 180);
+            SecilenFilmDetay.Location = new System.Drawing.Point(30, 520);
+            SecilenFilmDetay.Font = new System.Drawing.Font("Arial", 13F, System.Drawing.FontStyle.Regular,
+                System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            SecilenFilmDetay.TextAlign = ContentAlignment.TopLeft;
+            önyanpanel.Controls.Add(SecilenFilmDetay);
+
+            // Geri Çık Butonu
+            System.Windows.Forms.Button geriCik = new Button();
+            geriCik.BackColor = System.Drawing.Color.FromArgb(50, 50, 50);
+            geriCik.ForeColor = Color.White;
+            geriCik.FlatAppearance.BorderSize = 0;
+            geriCik.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            geriCik.Font = new System.Drawing.Font("Arial", 12.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            geriCik.Location = new System.Drawing.Point(30, 6);
+            geriCik.Size = new System.Drawing.Size(113, 43);
+            geriCik.Text = "Geri Çık";
+            geriCik.UseVisualStyleBackColor = false;
+            önyanpanel.Controls.Add(geriCik);
+            geriCik.Click += new System.EventHandler(this.AnaSayfayaDön);
+
+            //oynatma ve durduma, reset butonları
+            System.Windows.Forms.PictureBox Oynat = new PictureBox();
+            Oynat.Parent = önyanpanel;
+            Oynat.BackColor = Color.Transparent;
+            Oynat.Size = new System.Drawing.Size(50, 50);
+            Oynat.Location = new System.Drawing.Point(415, 495);
+            Oynat.Image = Image.FromFile("..\\resorce\\video butonları\\play.png");
+            Oynat.SizeMode = PictureBoxSizeMode.StretchImage;
+            Oynat.Click += new System.EventHandler(this.oynat);
+            önyanpanel.Controls.Add(Oynat);
+
+            // duraklat butonunun oluşturulması
+            System.Windows.Forms.PictureBox Duraklat = new PictureBox();
+            Duraklat.Parent = önyanpanel;
+            Duraklat.BackColor = Color.Transparent;
+            Duraklat.Size = new System.Drawing.Size(50, 50);
+            Duraklat.Location = new System.Drawing.Point(480, 495);
+            Duraklat.Image = Image.FromFile("..\\resorce\\video butonları\\stop.png");
+            Duraklat.SizeMode = PictureBoxSizeMode.StretchImage;
+            Duraklat.Click += new System.EventHandler(this.duraklat);
+            önyanpanel.Controls.Add(Duraklat);
+
+            // reset butonunun oluşturulması
+            System.Windows.Forms.PictureBox Reset = new PictureBox();
+            Reset.Parent = önyanpanel;
+            Reset.BackColor = Color.Transparent;
+            Reset.Size = new System.Drawing.Size(50, 50);
+            Reset.Location = new System.Drawing.Point(545, 495);
+            Reset.Image = Image.FromFile("..\\resorce\\video butonları\\reset.png");
+            Reset.SizeMode = PictureBoxSizeMode.StretchImage;
+            Reset.Click += new System.EventHandler(this.Sıfırla);
+            önyanpanel.Controls.Add(Reset);
+
+            // puan labeli ve puan listesi
+            System.Windows.Forms.Label lblPuan = new Label();
+            lblPuan.Parent = önyanpanel;
+            lblPuan.Text = "Puan Ver : ";
+            lblPuan.Size = new System.Drawing.Size(115, 50);
+            lblPuan.Location = new System.Drawing.Point(415, 570);
+            lblPuan.ForeColor = Color.White;
+            lblPuan.Font = new System.Drawing.Font("Arial", 14F, System.Drawing.FontStyle.Regular,
+                    System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            lblPuan.TextAlign = ContentAlignment.TopLeft;
+            önyanpanel.Controls.Add(lblPuan);
+
+            // puan verme kısmı oluşturulması
+            puanbox = new ComboBox();
+            puanbox.Size = new System.Drawing.Size(80, 50);
+            puanbox.FlatStyle = FlatStyle.Flat;
+            puanbox.DropDownStyle = ComboBoxStyle.DropDown;
+            puanbox.Location = new System.Drawing.Point(535, 570);
+            puanbox.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Regular,
+              System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            puanbox.BackColor = Color.FromArgb(32, 32, 32);
+            puanbox.ForeColor = Color.White;
+            puanbox.SelectedIndexChanged += new EventHandler(this.PuanKaydet);
+            puanbox.Items.Add("");
+            for (int i = 0; i <= 10; i++) puanbox.Items.Add(i.ToString());
+            önyanpanel.Controls.Add(puanbox);
+
+            int Yartislbl = 0;
+            for (int i = 0; i < bölümSayisi; i++)
+            {
+                // bölüm labelleri
+                System.Windows.Forms.Label lblBölümSayisi = new Label();
+                lblBölümSayisi.Text = "Bölüm " + (i + 1);
+                lblBölümSayisi.Name = "Bölüm " + (i + 1);
+                lblBölümSayisi.ForeColor = Color.White;
+                lblBölümSayisi.Size = new System.Drawing.Size(80, 40);
+                lblBölümSayisi.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Regular,
+                    System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+                lblBölümSayisi.Location = new System.Drawing.Point(970, 85 + Yartislbl);
+                lblBölümSayisi.Click += new System.EventHandler(this.BölümSec);
+                lblBölümSayisi.TextAlign = ContentAlignment.MiddleCenter;
+                lblBölümSayisi.BackColor = Color.FromArgb(50, 50, 50);
+                önyanpanel.Controls.Add(lblBölümSayisi);
+                Bölümler.Add(lblBölümSayisi);
+                Yartislbl += 50;
+
+                // zaman labelleri 
+                System.Windows.Forms.Label lblZamanSayaç = new Label();
+                lblZamanSayaç.Text = 0.ToString(); ;
+                lblZamanSayaç.Name = "Zaman " + (i + 1);
+                lblZamanSayaç.ForeColor = Color.White;
+                lblZamanSayaç.Size = new System.Drawing.Size(540, 390);
+                lblZamanSayaç.Font = new System.Drawing.Font("Arial", 50F, System.Drawing.FontStyle.Bold,
+                    System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+                lblZamanSayaç.Location = new System.Drawing.Point(415, 85);
+                lblZamanSayaç.TextAlign = ContentAlignment.MiddleCenter;
+                lblZamanSayaç.BackColor = Color.FromArgb(15, 15, 15);
+                önyanpanel.Controls.Add(lblZamanSayaç);
+                lblZamanSayaç.Visible = false;
+                ZamanSayaclari.Add(lblZamanSayaç);
+            }
+
+            // kullanicinin kaldığı yerden başlaması
+            if (kalinanBölüm != -1 && kalinanZaman != -1)
+            {
+                puanVermeKontrol = -1;
+                Bölümler[kalinanBölüm - 1].BackColor = Color.FromArgb(229, 9, 20);
+                ZamanSayaclari[kalinanBölüm - 1].Visible = true;
+                ZamanSayaclari[kalinanBölüm - 1].Text = kalinanZaman.ToString();
+                secilenBölümİndexi = kalinanBölüm - 1;
+            }
+
+            //kullanicinin verdiği puanı görmesi
+            if(puan != -1) puanbox.Text = puan.ToString();
+        }
+
+        private void DetayStringiOlustur(ProgramTur FilmDetay)
+        {
+            // ön yan panel detay yazıları oluştur
+            Detaylar.Clear();
+            int denetim = 0;
+            foreach (var detay in FilmDetay.Tur)
+            {
+                Detaylar.Append(FilmDetay.Tur[denetim]);
+                if (denetim != FilmDetay.Tur.Count() - 1) Detaylar.Append(", ");
+                denetim++;
+            }
+            Detaylar.Append("\n");
+            Detaylar.Append("Tip : " + FilmDetay.Tip);
+            if (FilmDetay.bölümsayisi > 1)
+            {
+                Detaylar.Append("\n");
+                Detaylar.Append("Bölüm Sayısı : " + FilmDetay.bölümsayisi.ToString());
+            }
+            Detaylar.Append("\n");
+            Detaylar.Append("Süre : " + FilmDetay.programuzunluk.ToString());
+            Detaylar.Append("\n");
+            Detaylar.Append("Puan : " + FilmDetay.Puan.ToString());
+        }
+
+        private void oynat(object sender, EventArgs e)
+        {
+            puanVermeKontrol = -1;
+            // seçilen bölüme göre oynatma
+            if (secilenBölümİndexi != -1)
+            {
+                if (mysqlislemleri.FilmİzletmeKontrolEt(KullaniciEposta, FilmDetay.ProgramAd) == 0)
+                    mysqlislemleri.Filmİzletme(KullaniciEposta, FilmDetay.ProgramAd);
+
+                if (FilmOynatma.Enabled == true) FilmOynatma.Start();
+                else
+                {
+                    FilmOynatma.Enabled = true;
+                    FilmOynatma.Start();
+                }
+            }
+        }
+
+        private void Sıfırla(object sender, EventArgs e)
+        {
+            // oynatılan filmi sıfırlama
+            ZamanSayaclari[secilenBölümİndexi].Text = 0.ToString();
+            FilmOynatma.Enabled = false;
+            mysqlislemleri.FilmİzlemeDetayKaydet(KullaniciEposta, FilmDetay.ProgramAd,
+                    Convert.ToInt32(ZamanSayaclari[secilenBölümİndexi].Text), secilenBölümİndexi + 1);
+        }
+
+        private void duraklat(object sender, EventArgs e)
+        {
+            // oynatılan filmi duraklatma
+            if (secilenBölümİndexi != -1)
+                FilmOynatma.Stop();
+        }
+
+        private void BölümSec(object sender, EventArgs e)
+        {
+            // film detay classından gelen bölüm sayısına göre bölüm seçme işlemi
+            FilmOynatma.Enabled = false;
+            int index = 0;
+            foreach (var bölüm in Bölümler)
+            {
+                bölüm.BackColor = Color.FromArgb(50, 50, 50);
+                if (sender.GetHashCode() == bölüm.GetHashCode())
+                {
+                    secilenBölümİndexi = index;
+                }
+                index++;
+            }
+            Bölümler[secilenBölümİndexi].BackColor = Color.FromArgb(229, 9, 20);
+            foreach (var sayac in ZamanSayaclari)
+                sayac.Visible = false;
+
+            ZamanSayaclari[secilenBölümİndexi].Visible = true;
+        }
+
+        private void PuanKaydet(object sender, EventArgs e)
+        {
+            //puan kaydetme
+            if(puanbox.Text != "" && secilenBölümİndexi != -1 && puanVermeKontrol==-1)
+            {
+                mysqlislemleri.PuanKaydet(KullaniciEposta,FilmDetay.ProgramAd,Convert.ToInt32(puanbox.Text));
+            }
+        }
+
+        private void AnaSayfayaDön(object sender, EventArgs e)
+        {
+            // Ana Menüye Dönme işlemi
+            Detaylar.Clear();
+            önyanpanel.Controls.Clear();
+            tbllayoutönpanel.Controls.Remove(önyanpanel);
+            tbllayoutönpanel.Controls.Add(önanapanel);
+            önanapanel.Visible = true;
+            FilmOynatma.Enabled = false;
+            Bölümler.Clear();
+            secilenBölümİndexi = -1;
+            ZamanSayaclari.Clear();
+            kalinanBölüm = -1;
+            kalinanZaman = -1;
+            puan = -1;
+            puanVermeKontrol = 0;
+        }
+
+        private void PanelOlustur(Panel panel)
+        {
+            // önanapanel ve önyanpanellerin oluşturulması
+            panel.Anchor = AnchorStyles.Top;
+            panel.Anchor = AnchorStyles.Left;
+            panel.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            panel.AutoScroll = true;
+            panel.Visible = false;
+        }
+
+        public void ÖnerilenTurCek(List<string> TurSecim)
+        {
+            // kayıt sayfasında kullanıcının seçtiği türlerin çekilme işlemi
+            this.TurSecim = TurSecim;
+            ÖnerilenFilmListesi = mysqlislemleri.ÖnerilenFilmlerBul(TurSecim);
+        }
+
+        private void TurAraİslemi(string tur)
+        {
+            // formda yer alan tür yazılarına göre film getirme işlemi
+            TurAramaSonucListesi = mysqlislemleri.TurAra(tur);
+            PanelKontrolEt(TurAramaSonucListesi, ÖnerilenFilmListesi, önanapanel);
+            TurAramaSonucListesi.Clear();
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+            // textbox kısmından film aratıldığında film getirme işlemi 
+            foreach (var Film in FilmListesi)
+            {
+                if (Film.ToLower().Contains(txtarama.Text.ToLower())) AnlikArama.Add(Film);
+            }
+            PanelKontrolEt(AnlikArama, ÖnerilenFilmListesi, önanapanel);
+            AnlikArama.Clear();
+        }
+
+        private void lblanasayfa_Click(object sender, EventArgs e)
+        {
+            if (FilmListesi.Count * 2 != önanapanel.Controls.Count)
+            {
+                PanelKontrolEt(FilmListesi, ÖnerilenFilmListesi, önanapanel);
+            }
+        }
+
+        private void AnaForm_Load(object sender, EventArgs e)
+        {
+            FilmListesi = mysqlislemleri.FilmListele();
+            PanelKontrolEt(FilmListesi, ÖnerilenFilmListesi, önanapanel);
+        }
+
+        private void FilmOynatma_Tick(object sender, EventArgs e)
+        {
+            // timera göre film oynatma işlemleri
+            if (FilmDetay.programuzunluk > Convert.ToInt32(ZamanSayaclari[secilenBölümİndexi].Text))
+            {
+                ZamanSayaclari[secilenBölümİndexi].Text = (Convert.ToInt32(ZamanSayaclari[secilenBölümİndexi].Text) + 1).ToString();
+
+                mysqlislemleri.FilmİzlemeDetayKaydet(KullaniciEposta, FilmDetay.ProgramAd,
+                    Convert.ToInt32(ZamanSayaclari[secilenBölümİndexi].Text), secilenBölümİndexi + 1);
+            }
+            else FilmOynatma.Stop();
+        }
+
+        private void lblaksiyon_Click(object sender, EventArgs e)
+        {
+            TurAraİslemi("Aksiyon ve Macera");
+        }
+
+        private void lblbilimkurgu_Click(object sender, EventArgs e)
+        {
+            TurAraİslemi("Bilim Kurgu ve Fantastik");
+        }
+
+        private void lblbelgesel_Click(object sender, EventArgs e)
+        {
+            TurAraİslemi("Belgesel");
+        }
+
+        private void lblbilimvedoga_Click(object sender, EventArgs e)
+        {
+            TurAraİslemi("Bilim ve Doğa");
+        }
+
+        private void lbldrama_Click(object sender, EventArgs e)
+        {
+            TurAraİslemi("Drama");
+        }
+
+        private void lblgerilim_Click(object sender, EventArgs e)
+        {
+            TurAraİslemi("Gerilim");
+        }
+
+        private void lblkomedi_Click(object sender, EventArgs e)
+        {
+            TurAraİslemi("Komedi");
+        }
+
+        private void lblreality_Click(object sender, EventArgs e)
+        {
+            TurAraİslemi("Reality Program");
+        }
+
+        private void lblromantizm_Click(object sender, EventArgs e)
+        {
+            TurAraİslemi("Romantizm");
+        }
+
+        private void lblcocuk_Click(object sender, EventArgs e)
+        {
+            TurAraİslemi("Çocuk ve Aile");
+        }
+
+        private void lblanime_Click(object sender, EventArgs e)
+        {
+            TurAraİslemi("Anime");
+        }
+
+        private void lblkorku_Click(object sender, EventArgs e)
+        {
+            TurAraİslemi("Korku");
+        }
+
+        private void label2_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        private void pcbçıkışlogo_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        private System.ComponentModel.IContainer components = null;
+
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        #region Windows Form Designer generated code
+
+        /// <summary>
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(AnaForm));
+            this.tbllayoutarkapanel = new System.Windows.Forms.TableLayoutPanel();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.pcbçıkışlogo = new System.Windows.Forms.PictureBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.lblanasayfa = new System.Windows.Forms.Label();
+            this.lblkorku = new System.Windows.Forms.Label();
+            this.lblanime = new System.Windows.Forms.Label();
+            this.lblcocuk = new System.Windows.Forms.Label();
+            this.lblromantizm = new System.Windows.Forms.Label();
+            this.lblreality = new System.Windows.Forms.Label();
+            this.lblkomedi = new System.Windows.Forms.Label();
+            this.lblgerilim = new System.Windows.Forms.Label();
+            this.lbldrama = new System.Windows.Forms.Label();
+            this.lblbilimvedoga = new System.Windows.Forms.Label();
+            this.lblbelgesel = new System.Windows.Forms.Label();
+            this.lblbilimkurgu = new System.Windows.Forms.Label();
+            this.lblaksiyon = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
+            this.txtarama = new System.Windows.Forms.TextBox();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.panel2 = new System.Windows.Forms.Panel();
+            this.tbllayoutönpanel = new System.Windows.Forms.TableLayoutPanel();
+            this.FilmOynatma = new System.Windows.Forms.Timer(this.components);
+            this.tbllayoutarkapanel.SuspendLayout();
+            this.panel1.SuspendLayout();
+            this.panel2.SuspendLayout();
+            this.SuspendLayout();
+            // 
+            // tbllayoutarkapanel
+            // 
+            this.tbllayoutarkapanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.tbllayoutarkapanel.ColumnCount = 2;
+            this.tbllayoutarkapanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 18F));
+            this.tbllayoutarkapanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 82F));
+            this.tbllayoutarkapanel.Controls.Add(this.panel1, 0, 0);
+            this.tbllayoutarkapanel.Controls.Add(this.panel2, 1, 0);
+            this.tbllayoutarkapanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tbllayoutarkapanel.Location = new System.Drawing.Point(0, 0);
+            this.tbllayoutarkapanel.Margin = new System.Windows.Forms.Padding(0);
+            this.tbllayoutarkapanel.Name = "tbllayoutarkapanel";
+            this.tbllayoutarkapanel.RowCount = 2;
+            this.tbllayoutarkapanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tbllayoutarkapanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tbllayoutarkapanel.Size = new System.Drawing.Size(1342, 721);
+            this.tbllayoutarkapanel.TabIndex = 0;
+            // 
+            // panel1
+            // 
+            this.panel1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.panel1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
+            this.panel1.Controls.Add(this.pcbçıkışlogo);
+            this.panel1.Controls.Add(this.label2);
+            this.panel1.Controls.Add(this.lblanasayfa);
+            this.panel1.Controls.Add(this.lblkorku);
+            this.panel1.Controls.Add(this.lblanime);
+            this.panel1.Controls.Add(this.lblcocuk);
+            this.panel1.Controls.Add(this.lblromantizm);
+            this.panel1.Controls.Add(this.lblreality);
+            this.panel1.Controls.Add(this.lblkomedi);
+            this.panel1.Controls.Add(this.lblgerilim);
+            this.panel1.Controls.Add(this.lbldrama);
+            this.panel1.Controls.Add(this.lblbilimvedoga);
+            this.panel1.Controls.Add(this.lblbelgesel);
+            this.panel1.Controls.Add(this.lblbilimkurgu);
+            this.panel1.Controls.Add(this.lblaksiyon);
+            this.panel1.Controls.Add(this.label1);
+            this.panel1.Controls.Add(this.txtarama);
+            this.panel1.Controls.Add(this.pictureBox1);
+            this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel1.Location = new System.Drawing.Point(3, 3);
+            this.panel1.Name = "panel1";
+            this.tbllayoutarkapanel.SetRowSpan(this.panel1, 2);
+            this.panel1.Size = new System.Drawing.Size(235, 715);
+            this.panel1.TabIndex = 0;
+            // 
+            // pcbçıkışlogo
+            // 
+            this.pcbçıkışlogo.Image = Image.FromFile("..\\resorce\\arkaplan ve icon\\logout.png");
+            this.pcbçıkışlogo.Location = new System.Drawing.Point(187, 671);
+            this.pcbçıkışlogo.MaximumSize = new System.Drawing.Size(35, 35);
+            this.pcbçıkışlogo.MinimumSize = new System.Drawing.Size(35, 35);
+            this.pcbçıkışlogo.Name = "pcbçıkışlogo";
+            this.pcbçıkışlogo.Size = new System.Drawing.Size(35, 35);
+            this.pcbçıkışlogo.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pcbçıkışlogo.TabIndex = 16;
+            this.pcbçıkışlogo.TabStop = false;
+            this.pcbçıkışlogo.Click += new System.EventHandler(this.pcbçıkışlogo_Click);
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label2.Location = new System.Drawing.Point(121, 671);
+            this.label2.MinimumSize = new System.Drawing.Size(60, 35);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(60, 35);
+            this.label2.TabIndex = 17;
+            this.label2.Text = "Çıkış";
+            this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.label2.Click += new System.EventHandler(this.label2_Click);
+            // 
+            // lblanasayfa
+            // 
+            this.lblanasayfa.AutoSize = true;
+            this.lblanasayfa.Location = new System.Drawing.Point(6, 225);
+            this.lblanasayfa.Name = "lblanasayfa";
+            this.lblanasayfa.Size = new System.Drawing.Size(105, 22);
+            this.lblanasayfa.TabIndex = 15;
+            this.lblanasayfa.Text = ". Ana Sayfa";
+            this.lblanasayfa.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lblanasayfa.Click += new System.EventHandler(this.lblanasayfa_Click);
+            // 
+            // lblkorku
+            // 
+            this.lblkorku.AutoSize = true;
+            this.lblkorku.Location = new System.Drawing.Point(6, 557);
+            this.lblkorku.Name = "lblkorku";
+            this.lblkorku.Size = new System.Drawing.Size(69, 22);
+            this.lblkorku.TabIndex = 14;
+            this.lblkorku.Text = ". Korku";
+            this.lblkorku.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lblkorku.Click += new System.EventHandler(this.lblkorku_Click);
+            // 
+            // lblanime
+            // 
+            this.lblanime.AutoSize = true;
+            this.lblanime.Location = new System.Drawing.Point(6, 289);
+            this.lblanime.Name = "lblanime";
+            this.lblanime.Size = new System.Drawing.Size(73, 22);
+            this.lblanime.TabIndex = 13;
+            this.lblanime.Text = ". Anime";
+            this.lblanime.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lblanime.Click += new System.EventHandler(this.lblanime_Click);
+            // 
+            // lblcocuk
+            // 
+            this.lblcocuk.AutoSize = true;
+            this.lblcocuk.Location = new System.Drawing.Point(5, 424);
+            this.lblcocuk.Name = "lblcocuk";
+            this.lblcocuk.Size = new System.Drawing.Size(135, 22);
+            this.lblcocuk.TabIndex = 12;
+            this.lblcocuk.Text = ". Çocuk ve Aile";
+            this.lblcocuk.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lblcocuk.Click += new System.EventHandler(this.lblcocuk_Click);
+            // 
+            // lblromantizm
+            // 
+            this.lblromantizm.AutoSize = true;
+            this.lblromantizm.Location = new System.Drawing.Point(6, 626);
+            this.lblromantizm.Name = "lblromantizm";
+            this.lblromantizm.Size = new System.Drawing.Size(115, 22);
+            this.lblromantizm.TabIndex = 11;
+            this.lblromantizm.Text = ". Romantizm";
+            this.lblromantizm.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lblromantizm.Click += new System.EventHandler(this.lblromantizm_Click);
+            // 
+            // lblreality
+            // 
+            this.lblreality.AutoSize = true;
+            this.lblreality.Location = new System.Drawing.Point(6, 592);
+            this.lblreality.Name = "lblreality";
+            this.lblreality.Size = new System.Drawing.Size(155, 22);
+            this.lblreality.TabIndex = 10;
+            this.lblreality.Text = ". Reality Program";
+            this.lblreality.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lblreality.Click += new System.EventHandler(this.lblreality_Click);
+            // 
+            // lblkomedi
+            // 
+            this.lblkomedi.AutoSize = true;
+            this.lblkomedi.Location = new System.Drawing.Point(5, 523);
+            this.lblkomedi.Name = "lblkomedi";
+            this.lblkomedi.Size = new System.Drawing.Size(86, 22);
+            this.lblkomedi.TabIndex = 9;
+            this.lblkomedi.Text = ". Komedi";
+            this.lblkomedi.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lblkomedi.Click += new System.EventHandler(this.lblkomedi_Click);
+            // 
+            // lblgerilim
+            // 
+            this.lblgerilim.AutoSize = true;
+            this.lblgerilim.Location = new System.Drawing.Point(5, 491);
+            this.lblgerilim.Name = "lblgerilim";
+            this.lblgerilim.Size = new System.Drawing.Size(80, 22);
+            this.lblgerilim.TabIndex = 8;
+            this.lblgerilim.Text = ". Gerilim";
+            this.lblgerilim.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lblgerilim.Click += new System.EventHandler(this.lblgerilim_Click);
+            // 
+            // lbldrama
+            // 
+            this.lbldrama.AutoSize = true;
+            this.lbldrama.Location = new System.Drawing.Point(5, 458);
+            this.lbldrama.Name = "lbldrama";
+            this.lbldrama.Size = new System.Drawing.Size(76, 22);
+            this.lbldrama.TabIndex = 7;
+            this.lbldrama.Text = ". Drama";
+            this.lbldrama.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lbldrama.Click += new System.EventHandler(this.lbldrama_Click);
+            // 
+            // lblbilimvedoga
+            // 
+            this.lblbilimvedoga.AutoSize = true;
+            this.lblbilimvedoga.Location = new System.Drawing.Point(5, 390);
+            this.lblbilimvedoga.Name = "lblbilimvedoga";
+            this.lblbilimvedoga.Size = new System.Drawing.Size(137, 22);
+            this.lblbilimvedoga.TabIndex = 6;
+            this.lblbilimvedoga.Text = ". Bilim ve Doğa";
+            this.lblbilimvedoga.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lblbilimvedoga.Click += new System.EventHandler(this.lblbilimvedoga_Click);
+            // 
+            // lblbelgesel
+            // 
+            this.lblbelgesel.AutoSize = true;
+            this.lblbelgesel.Location = new System.Drawing.Point(6, 321);
+            this.lblbelgesel.Name = "lblbelgesel";
+            this.lblbelgesel.Size = new System.Drawing.Size(95, 22);
+            this.lblbelgesel.TabIndex = 5;
+            this.lblbelgesel.Text = ". Belgesel";
+            this.lblbelgesel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lblbelgesel.Click += new System.EventHandler(this.lblbelgesel_Click);
+            // 
+            // lblbilimkurgu
+            // 
+            this.lblbilimkurgu.AutoSize = true;
+            this.lblbilimkurgu.Location = new System.Drawing.Point(6, 356);
+            this.lblbilimkurgu.Name = "lblbilimkurgu";
+            this.lblbilimkurgu.Size = new System.Drawing.Size(221, 22);
+            this.lblbilimkurgu.TabIndex = 4;
+            this.lblbilimkurgu.Text = ". Bilim Kurgu ve Fantastik";
+            this.lblbilimkurgu.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lblbilimkurgu.Click += new System.EventHandler(this.lblbilimkurgu_Click);
+            // 
+            // lblaksiyon
+            // 
+            this.lblaksiyon.AutoSize = true;
+            this.lblaksiyon.Location = new System.Drawing.Point(5, 257);
+            this.lblaksiyon.Name = "lblaksiyon";
+            this.lblaksiyon.Size = new System.Drawing.Size(177, 22);
+            this.lblaksiyon.TabIndex = 3;
+            this.lblaksiyon.Text = ". Aksiyon ve Macera";
+            this.lblaksiyon.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lblaksiyon.Click += new System.EventHandler(this.lblaksiyon_Click);
+            // 
+            // label1
+            // 
+            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.label1.Location = new System.Drawing.Point(3, 145);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(53, 23);
+            this.label1.TabIndex = 2;
+            this.label1.Text = "Ara :";
+            // 
+            // txtarama
+            // 
+            this.txtarama.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtarama.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this.txtarama.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtarama.Font = new System.Drawing.Font("Arial", 13F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.txtarama.ForeColor = System.Drawing.Color.White;
+            this.txtarama.Location = new System.Drawing.Point(0, 178);
+            this.txtarama.Name = "txtarama";
+            this.txtarama.Size = new System.Drawing.Size(235, 32);
+            this.txtarama.TabIndex = 1;
+            this.txtarama.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
+            // 
+            // pictureBox1
+            // 
+            this.pictureBox1.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pictureBox1.Image = Image.FromFile("..\\resorce\\arkaplan ve icon\\Netflix-Logo.png");
+            this.pictureBox1.Location = new System.Drawing.Point(0, 0);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Padding = new System.Windows.Forms.Padding(10);
+            this.pictureBox1.Size = new System.Drawing.Size(235, 127);
+            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureBox1.TabIndex = 0;
+            this.pictureBox1.TabStop = false;
+            // 
+            // panel2
+            // 
+            this.panel2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
+            this.panel2.Controls.Add(this.tbllayoutönpanel);
+            this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel2.Location = new System.Drawing.Point(244, 3);
+            this.panel2.Name = "panel2";
+            this.tbllayoutarkapanel.SetRowSpan(this.panel2, 2);
+            this.panel2.Size = new System.Drawing.Size(1095, 715);
+            this.panel2.TabIndex = 1;
+            // 
+            // tbllayoutönpanel
+            // 
+            this.tbllayoutönpanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.tbllayoutönpanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.tbllayoutönpanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
+            this.tbllayoutönpanel.ColumnCount = 2;
+            this.tbllayoutönpanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.22748F));
+            this.tbllayoutönpanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 49.77252F));
+            this.tbllayoutönpanel.Font = new System.Drawing.Font("Montserrat Light", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(162)));
+            this.tbllayoutönpanel.Location = new System.Drawing.Point(-4, 0);
+            this.tbllayoutönpanel.Name = "tbllayoutönpanel";
+            this.tbllayoutönpanel.RowCount = 2;
+            this.tbllayoutönpanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 48.53147F));
+            this.tbllayoutönpanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 51.46853F));
+            this.tbllayoutönpanel.Size = new System.Drawing.Size(1099, 715);
+            this.tbllayoutönpanel.TabIndex = 0;
+            // 
+            // FilmOynatma
+            // 
+            this.FilmOynatma.Interval = 400;
+            this.FilmOynatma.Tick += new System.EventHandler(this.FilmOynatma_Tick);
+            // 
+            // AnaForm
+            // 
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
+            this.AutoSize = true;
+            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
+            this.ClientSize = new System.Drawing.Size(1342, 721);
+            this.Controls.Add(this.tbllayoutarkapanel);
+            this.Font = new System.Drawing.Font("Arial", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ForeColor = System.Drawing.Color.White;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
+            this.Name = "AnaForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.Text = "Netfflix";
+            this.Load += new System.EventHandler(this.AnaForm_Load);
+            this.tbllayoutarkapanel.ResumeLayout(false);
+            this.panel1.ResumeLayout(false);
+            this.panel1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pcbçıkışlogo)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            this.panel2.ResumeLayout(false);
+            this.ResumeLayout(false);
+
+        }
+
+        #endregion
+
+        private System.Windows.Forms.TableLayoutPanel tbllayoutarkapanel;
+        private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.Panel panel2;
+        private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.TextBox txtarama;
+        private System.Windows.Forms.Label lblkorku;
+        private System.Windows.Forms.Label lblanime;
+        private System.Windows.Forms.Label lblcocuk;
+        private System.Windows.Forms.Label lblromantizm;
+        private System.Windows.Forms.Label lblreality;
+        private System.Windows.Forms.Label lblkomedi;
+        private System.Windows.Forms.Label lblgerilim;
+        private System.Windows.Forms.Label lbldrama;
+        private System.Windows.Forms.Label lblbilimvedoga;
+        private System.Windows.Forms.Label lblbelgesel;
+        private System.Windows.Forms.Label lblbilimkurgu;
+        private System.Windows.Forms.Label lblaksiyon;
+        private System.Windows.Forms.TableLayoutPanel tbllayoutönpanel;
+        private System.Windows.Forms.Label lblanasayfa;
+        private System.Windows.Forms.Timer FilmOynatma;
+        private System.Windows.Forms.PictureBox pcbçıkışlogo;
+        private System.Windows.Forms.Label label2;
+    }
+
+
+
+
+
+//------------------------------- Bundan sonrakiler normal classlardır.-------------------------------------
+
+ static class Program
+    {
+        /// <summary>
+        /// Uygulamanın ana girdi noktası.
+        /// </summary>
+        [STAThread]
+        static void Main()
+        {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new GirisSayfasi());
+        }
+    }
+
+
+//---------------------------------------------------------------------------------------------------------
+
+
+public class Mysqlislemleri
+    {
+
+        string datasource;
+        string port;
+        string username;
+        string password;
+        public int baglanti = 0;
+        MySqlConnection connect;
+
+
+        public Mysqlislemleri(string password, string datasource, string port, string username)
+        {
+
+            if (!(string.IsNullOrEmpty(datasource) && string.IsNullOrEmpty(port) && string.IsNullOrEmpty(username) && string.IsNullOrEmpty(password)))
+            {
+                this.datasource = datasource;
+                this.port = port;
+                this.username = username;
+                this.password = password;
+                baglanti = 1;
+                Connection();
+            }
+            else
+                MessageBox.Show("Connection bilgileri boştur.", "Bağlanma Uyarısı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+
+        private static string FilmAdKontrolü(string FilmAd)
+        {
+            StringBuilder builder = new StringBuilder();
+
+            int sayac = 0;
+            if (FilmAd.Contains("\'"))
+            {
+                List<char> liste = FilmAd.ToList();
+                int index = liste.IndexOf('\'');
+
+                foreach (var item in liste)
+                {
+                    if (sayac < index) builder.Append(item);
+                    else if (sayac == index) builder.Append("\\'");
+                    else builder.Append(item);
+                    sayac++;
+                }
+                FilmAd = builder.ToString();
+            }
+
+            return FilmAd;
+        }
+
+        public void Connection()
+        {
+            string connectionString = $"datasource={datasource};port={port};username={username};password={password};";
+
+            try
+            {
+                connect = new MySqlConnection(connectionString);
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Mysql ile bağlantı yapılamadı.", "Bağlanma Uyarısı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        public List<string> EmailKontrol()
+        {
+            List<string> Emails = new List<string>();
+
+            if (connect != null)
+            {
+                using (var command = new MySqlCommand(@"select email from netflix.t_kullanici;", connect))
+                {
+                    if (connect.State == System.Data.ConnectionState.Closed)
+                    {
+                        connect.Open();
+                        MySqlDataReader reader;
+
+                        try
+                        {
+                            reader = command.ExecuteReader();
+
+                            while (reader.Read()) Emails.Add(reader["email"].ToString());
+
+                            reader.Close();
+                            connect.Close();
+
+                        }
+                        catch (Exception)
+                        {
+                            MessageBox.Show("Email Kontrolü Yapılamadı.", "Kontrol Uyarısı",
+                                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            return null;
+                        }
+                    }
+                }
+                return Emails;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public void KayitOl(params string[] Veriler)
+        {
+            if (connect != null)
+            {
+                using (var command = new MySqlCommand(@"insert into netflix.t_kullanici values(@p1,@p2,@p3,@p4);", connect))
+                {
+                    if (connect.State == System.Data.ConnectionState.Closed)
+                    {
+                        connect.Open();
+                        try
+                        {
+                            command.Parameters.AddWithValue("@p1", Veriler[0]);
+                            command.Parameters.AddWithValue("@p2", Veriler[1]);
+                            command.Parameters.AddWithValue("@p3", Veriler[2]);
+                            command.Parameters.AddWithValue("@p4", Veriler[3]);
+                            command.ExecuteNonQuery();
+                            connect.Close();
+
+                            MessageBox.Show("Kayıt Başarılı Bir Şekilde Gerçekleştirildi.", "Bilgilendirme",
+                               MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                        }
+                        catch (Exception)
+                        {
+                            MessageBox.Show("Kayıt Yapılamadı.", "Kayıt Hatası",
+                                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        }
+                    }
+                }
+            }
+        }
+
+        public bool GirisYap(string email, string sifre)
+        {
+            int denetim = 0;
+
+            if (connect != null)
+            {
+                using (var command = new MySqlCommand(@"select * from netflix.t_kullanici where email= '" + email +
+                    "' and sifre= '" + sifre + "';", connect))
+                {
+                    if (connect.State == System.Data.ConnectionState.Closed)
+                    {
+                        connect.Open();
+                        MySqlDataReader reader;
+
+                        try
+                        {
+                            reader = command.ExecuteReader();
+
+                            while (reader.Read()) denetim++;
+
+                            reader.Close();
+                            connect.Close();
+
+                        }
+                        catch (Exception)
+                        {
+                            MessageBox.Show("Giriş Yapılamadı", "Kayıt Hatası",
+                                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            return false;
+                        }
+                    }
+                }
+            }
+            if (denetim != 0) return true;
+            else return false;
+        }
+
+        public List<string> FilmListele()
+        {
+            List<string> FilmListesi = new List<string>();
+
+            if (connect != null)
+            {
+                using (var command = new MySqlCommand(@"select ad from netflix.t_program;", connect))
+                {
+                    if (connect.State == System.Data.ConnectionState.Closed)
+                    {
+                        connect.Open();
+                        MySqlDataReader reader;
+
+                        try
+                        {
+                            reader = command.ExecuteReader();
+
+                            while (reader.Read()) FilmListesi.Add(reader["ad"].ToString());
+
+                            reader.Close();
+                            connect.Close();
+
+                        }
+                        catch (Exception)
+                        {
+                            return null;
+                        }
+                    }
+                }
+            }
+            return FilmListesi;
+        }
+
+        public List<string> TurAra(string tur)
+        {
+            List<string> Tur = new List<string>();
+
+            if (connect != null)
+            {
+                using (var command = new MySqlCommand("select programad from netflix.t_programtur where turad = '" + tur + "';", connect))
+                {
+                    if (connect.State == System.Data.ConnectionState.Closed)
+                    {
+                        connect.Open();
+                        MySqlDataReader reader;
+
+                        try
+                        {
+                            reader = command.ExecuteReader();
+
+                            while (reader.Read()) Tur.Add(reader["programad"].ToString());
+
+                            reader.Close();
+                            connect.Close();
+
+                        }
+                        catch (Exception)
+                        {
+                            return null;
+                        }
+                    }
+                }
+            }
+            return Tur;
+        }
+
+        public void FilmDetay(ProgramTur programTur, string FilmAd)
+        {
+            FilmAd = FilmAdKontrolü(FilmAd);
+            int sayac = 0;
+
+            if (connect != null)
+            {
+                using (var command = new MySqlCommand(@"select ad,tip,bölümsayisi,programuzunluk,turad from netflix.t_program inner join" +
+                        " netflix.t_programtur on ad = programad where programad = '" + FilmAd + "';", connect))
+                {
+                    if (connect.State == System.Data.ConnectionState.Closed)
+                    {
+                        connect.Open();
+                        MySqlDataReader reader;
+
+                        try
+                        {
+                            reader = command.ExecuteReader();
+
+                            while (reader.Read())
+                            {
+                                if (sayac == 0)
+                                {
+                                    programTur.ProgramAd = reader["ad"].ToString();
+                                    programTur.Tip = reader["tip"].ToString();
+                                    programTur.bölümsayisi = reader.GetInt32(2);
+                                    programTur.programuzunluk = reader.GetInt32(3);
+                                }
+                                programTur.Tur.Add(reader["turad"].ToString());
+                                sayac++;
+                            }
+                            reader.Close();
+                            connect.Close();
+                        }
+                        catch (Exception)
+                        {
+
+                        }
+                    }
+                }
+
+                using (var command = new MySqlCommand(@"select ad,avg(puan) from netflix.t_program left join netflix.t_kullaniciprogram on ad = programad" +
+                                        " where programad = '" + FilmAd + "' group by programad;", connect))
+                {
+                    if (connect.State == System.Data.ConnectionState.Closed)
+                    {
+                        connect.Open();
+                        MySqlDataReader reader;
+
+                        try
+                        {
+                            reader = command.ExecuteReader();
+                            while (reader.Read()) programTur.Puan = reader.GetInt32(1);
+
+                            reader.Close();
+                            connect.Close();
+                        }
+                        catch (Exception)
+                        {
+
+                        }
+                    }
+                }
+            }
+        }
+
+        public List<string> ÖnerilenFilmlerBul(List<string> Turler)
+        {
+            List<string> ÖnerilenFilmler = new List<string>();
+
+            foreach (var Tur in Turler)
+            {
+                if (connect != null)
+                {
+                    using (var command = new MySqlCommand("select t_programtur.programad,avg(puan) as 'puan',turad from netflix.t_programtur inner join netflix.t_kullaniciprogram on " +
+                                         "t_programtur.programad = t_kullaniciprogram.programad where t_programtur.turad = '" + Tur + "' group by programad order by puan desc;", connect))
+                    {
+                        if (connect.State == System.Data.ConnectionState.Closed)
+                        {
+                            connect.Open();
+                            MySqlDataReader reader;
+                            int sayac = 0;
+                            reader = command.ExecuteReader();
+
+                            while (reader.Read())
+                            {
+                                if (sayac < 2)
+                                {
+                                    ÖnerilenFilmler.Add(reader["programad"].ToString()); ;
+                                }
+                                else break;
+                                sayac++;
+                            }
+                            reader.Close();
+                            connect.Close();
+
+                        }
+                    }
+                }
+            }
+
+            ÖnerilenFilmler.Sort();
+
+            for (int i = 0; i < ÖnerilenFilmler.Count - 1; i++)
+            {
+                if (ÖnerilenFilmler[i] == ÖnerilenFilmler[i + 1]) ÖnerilenFilmler.RemoveAt(i);
+            }
+
+            return ÖnerilenFilmler;
+        }
+
+        public void Filmİzletme(string eposta, string FilmAd)
+        {
+            FilmAd = FilmAdKontrolü(FilmAd);
+
+            if (connect != null)
+            {
+                using (var command = new MySqlCommand("insert into netflix.t_kullaniciprogram values ( '" + eposta + "', '" + FilmAd + "', " +
+                                                       " curdate(), 0, 0.0, 0 );", connect))
+                {
+                    if (connect.State == System.Data.ConnectionState.Closed)
+                    {
+                        try
+                        {
+                            connect.Open();
+                            command.ExecuteNonQuery();
+                            connect.Close();
+                        }
+                        catch (Exception)
+                        {
+                            connect.Close();
+                        }
+
+                    }
+                }
+            }
+        }
+        public void FilmİzlemeDetayKaydet(string eposta, string FilmAd, int izlenmeSüresi, int kalinanBölüm)
+        {
+            FilmAd = FilmAdKontrolü(FilmAd);
+
+            if (connect != null)
+            {
+                using (var command = new MySqlCommand("Update netflix.t_kullaniciprogram set izlenmetarihi = curdate(), izlenmesüresi = @izlenmeSüresi, puan = 0.0, kalinanbölüm = @kalinanBölüm " +
+                                                   "where t_kullaniciprogram.programad = '" + FilmAd + "' and t_kullaniciprogram.kullaniciemail = '" + eposta + "';", connect))
+                {
+                    if (connect.State == System.Data.ConnectionState.Closed)
+                    {
+                        try
+                        {
+                            connect.Open();
+                            command.Parameters.AddWithValue("@izlenmeSüresi", izlenmeSüresi);
+                            command.Parameters.AddWithValue("@kalinanBölüm", kalinanBölüm);
+                            command.ExecuteNonQuery();
+                            connect.Close();
+                        }
+                        catch (Exception)
+                        {
+                            throw;
+                        }
+                    }
+                }
+            }
+        }
+
+        public int FilmİzletmeKontrolEt(string eposta, string FilmAd)
+        {
+            int kontrol = 0;
+
+            FilmAd = FilmAdKontrolü(FilmAd);
+
+            if (connect != null)
+            {
+                using (var command = new MySqlCommand("select * from netflix.t_kullaniciprogram where t_kullaniciprogram.programad = '" + FilmAd + "' and " +
+                                                         "t_kullaniciprogram.kullaniciemail = '" + eposta + "' ;", connect))
+                {
+                    if (connect.State == System.Data.ConnectionState.Closed)
+                    {
+ 
+                        try
+                        {
+                            connect.Open();
+                            MySqlDataReader reader;
+                            reader = command.ExecuteReader();
+
+                            while (reader.Read()) kontrol++;
+
+                            reader.Close();
+                            connect.Close();
+                        }
+                        catch (Exception)
+                        {
+                            throw;
+                        }
+                    }
+                }
+            }
+            return kontrol;
+        }
+        public void Filmİzlenmismi(ref int kalinanBölüm,ref int kalinanZaman,string eposta,string FilmAd)
+        {
+            FilmAd = FilmAdKontrolü(FilmAd);
+           
+            if (connect != null)
+            {
+                using (var command = new MySqlCommand("select kalinanbölüm,izlenmesüresi from netflix.t_kullaniciprogram where t_kullaniciprogram.programad = '" + FilmAd + "' and " +
+                                                         "t_kullaniciprogram.kullaniciemail = '" + eposta + "' ;", connect))
+                {
+                    if (connect.State == System.Data.ConnectionState.Closed)
+                    {
+
+                        try
+                        {
+                            connect.Open();
+                            MySqlDataReader reader;
+                            reader = command.ExecuteReader();
+
+                            while (reader.Read())
+                            {
+                                kalinanBölüm = reader.GetInt32(0);
+                                kalinanZaman = reader.GetInt32(1);
+                            }
+
+                            reader.Close();
+                            connect.Close();
+                        }
+                        catch (Exception)
+                        {
+                            throw;
+                        }
+                    }
+                }
+            }
+        }
+
+        public void PuanGöster(ref int puan, string eposta, string FilmAd)
+        {
+            FilmAd = FilmAdKontrolü(FilmAd);
+
+            if (connect != null)
+            {
+                using (var command = new MySqlCommand("select puan from netflix.t_kullaniciprogram where t_kullaniciprogram.programad = '" + FilmAd + "' and " +
+                                                         "t_kullaniciprogram.kullaniciemail = '" + eposta + "';", connect))
+                {
+                    if (connect.State == System.Data.ConnectionState.Closed)
+                    {
+                        try
+                        {
+                            connect.Open();
+                            MySqlDataReader reader;
+                            reader = command.ExecuteReader();
+                            while (reader.Read()) puan = reader.GetInt32(0);
+                            connect.Close();
+                        }
+                        catch (Exception)
+                        {
+                            throw;
+                        }
+                    }
+                }
+            }
+        }
+      
+        public void PuanKaydet(string eposta, string FilmAd, int puan)
+        {
+            FilmAd = FilmAdKontrolü(FilmAd);
+
+            if (connect != null)
+            {
+                using (var command = new MySqlCommand(" Update netflix.t_kullaniciprogram  set puan = @Puan where t_kullaniciprogram.programad = '" + FilmAd + "' and " +
+                                                         "t_kullaniciprogram.kullaniciemail = '" + eposta + "';", connect))
+                {
+                    if (connect.State == System.Data.ConnectionState.Closed)
+                    {
+                        try
+                        {
+                            connect.Open();
+                            command.Parameters.AddWithValue("@Puan", puan);
+                            command.ExecuteNonQuery();
+                            connect.Close();
+                        }
+                        catch (Exception)
+                        {
+                            throw;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+
+
+//----------------------------------------------------------------------------------------------------------
+
+
+
+public class BağlantıBilgileriOku
+    {
+        public string datasource { get; set; }
+        public string port { get; set; }
+        public string username { get; set; }
+        public string password { get; set; }
+        public string DosyaYolu { get; set; }
+
+        public BağlantıBilgileriOku()
+        {
+            DosyaYolu = "..\\..\\..\\BağlantıBilgileri.txt";
+            DosyaOku();
+        }
+
+        private void DosyaOku()
+        {
+            FileStream fileStream = new FileStream(DosyaYolu, FileMode.Open, FileAccess.Read);
+            StreamReader streamReader = new StreamReader(fileStream);
+
+            string read = streamReader.ReadToEnd();
+            List<string> readList = read.Split(',').ToList();
+
+            datasource = readList[0];
+            port = readList[1];
+            username = readList[2];
+            password = readList[3];
+
+            streamReader.Close();
+            fileStream.Close();
+        }
+    }
+
+
+// -------------------------------------Kaynak Kodları bu kadardır.----------------------------------------
+

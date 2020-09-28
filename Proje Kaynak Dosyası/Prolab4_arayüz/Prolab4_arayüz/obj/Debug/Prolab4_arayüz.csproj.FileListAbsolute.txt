@@ -1,0 +1,22 @@
+C:\Users\Osman\Desktop\Prolab 4\Prolab4_arayüz\Prolab4_arayüz\bin\Debug\Prolab4_arayüz.exe.config
+C:\Users\Osman\Desktop\Prolab 4\Prolab4_arayüz\Prolab4_arayüz\bin\Debug\Prolab4_arayüz.exe
+C:\Users\Osman\Desktop\Prolab 4\Prolab4_arayüz\Prolab4_arayüz\bin\Debug\Prolab4_arayüz.pdb
+C:\Users\Osman\Desktop\Prolab 4\Prolab4_arayüz\Prolab4_arayüz\obj\Debug\Prolab4_arayüz.csprojAssemblyReference.cache
+C:\Users\Osman\Desktop\Prolab 4\Prolab4_arayüz\Prolab4_arayüz\obj\Debug\Prolab4_arayüz.Form1.resources
+C:\Users\Osman\Desktop\Prolab 4\Prolab4_arayüz\Prolab4_arayüz\obj\Debug\Prolab4_arayüz.Properties.Resources.resources
+C:\Users\Osman\Desktop\Prolab 4\Prolab4_arayüz\Prolab4_arayüz\obj\Debug\Prolab4_arayüz.csproj.GenerateResource.cache
+C:\Users\Osman\Desktop\Prolab 4\Prolab4_arayüz\Prolab4_arayüz\obj\Debug\Prolab4_arayüz.csproj.CoreCompileInputs.cache
+C:\Users\Osman\Desktop\Prolab 4\Prolab4_arayüz\Prolab4_arayüz\obj\Debug\Prolab4_arayüz.exe
+C:\Users\Osman\Desktop\Prolab 4\Prolab4_arayüz\Prolab4_arayüz\obj\Debug\Prolab4_arayüz.pdb
+C:\Users\Osman\Desktop\Prolab 4\Prolab4_arayüz\Prolab4_arayüz\obj\Debug\Prolab4_arayüz.Form2.resources
+D:\Yazılım\Ders Notları\prolab\prolab 4. proje\Prolab 4\Prolab4_arayüz\Prolab4_arayüz\bin\Debug\Prolab4_arayüz.exe.config
+D:\Yazılım\Ders Notları\prolab\prolab 4. proje\Prolab 4\Prolab4_arayüz\Prolab4_arayüz\bin\Debug\Prolab4_arayüz.exe
+D:\Yazılım\Ders Notları\prolab\prolab 4. proje\Prolab 4\Prolab4_arayüz\Prolab4_arayüz\bin\Debug\Prolab4_arayüz.pdb
+D:\Yazılım\Ders Notları\prolab\prolab 4. proje\Prolab 4\Prolab4_arayüz\Prolab4_arayüz\obj\Debug\Prolab4_arayüz.csprojAssemblyReference.cache
+D:\Yazılım\Ders Notları\prolab\prolab 4. proje\Prolab 4\Prolab4_arayüz\Prolab4_arayüz\obj\Debug\Prolab4_arayüz.Form1.resources
+D:\Yazılım\Ders Notları\prolab\prolab 4. proje\Prolab 4\Prolab4_arayüz\Prolab4_arayüz\obj\Debug\Prolab4_arayüz.Form2.resources
+D:\Yazılım\Ders Notları\prolab\prolab 4. proje\Prolab 4\Prolab4_arayüz\Prolab4_arayüz\obj\Debug\Prolab4_arayüz.Properties.Resources.resources
+D:\Yazılım\Ders Notları\prolab\prolab 4. proje\Prolab 4\Prolab4_arayüz\Prolab4_arayüz\obj\Debug\Prolab4_arayüz.csproj.GenerateResource.cache
+D:\Yazılım\Ders Notları\prolab\prolab 4. proje\Prolab 4\Prolab4_arayüz\Prolab4_arayüz\obj\Debug\Prolab4_arayüz.csproj.CoreCompileInputs.cache
+D:\Yazılım\Ders Notları\prolab\prolab 4. proje\Prolab 4\Prolab4_arayüz\Prolab4_arayüz\obj\Debug\Prolab4_arayüz.exe
+D:\Yazılım\Ders Notları\prolab\prolab 4. proje\Prolab 4\Prolab4_arayüz\Prolab4_arayüz\obj\Debug\Prolab4_arayüz.pdb

@@ -1,0 +1,44 @@
+180202048 Osman ŞİMŞEK          180202054 Yener Emin ELİBOL
+Proje başlığı:Gezgin Kargo Problemi
+Gezgin Kargo Problemi projesini çalıştırmak için gerekli program: Visual Studio 2019 versiyonu
+Gezgin Kargo Problemi projesinin yazıldığı dil : c#
+projeyi çalıştırmak için uygulanıcak adımlar: 
+
+Program çalıştığında ekrana ilk olarak bilgilendirme mesajı gelir. Bilgilendirme mesajına tamam onayı
+verilince program çalışır. Programın kendine ait menü paneli ekrana gelmektedir.
+
+Gelen menü panelindeki butonların kullanımı:
+
+Şehirleri Giriniz:
+Program başlatıldığında gelen bilgilendirmede söylendiği gibi türkçe karakter içermeden ve
+büyük harfle başlayarak en az 3 , en fazla 10 şehir girilmeli aksi halde program uyarı 
+verir ve kendini sıfırlar.
+
+Kayıt Yap:
+Kayıt yap butonu girilen şehirleri programa kaydeder.
+
+Arama Yap:
+Arama yap butonu girilen sehirlere göre en kısa yolu bulması için sistemin başlatılmasını sağlar.
+Arama Yap Çalıştırılmadan diğer butonların işlevleri geçersizdir. Şehirler girildikten sonra
+yapılması gereken ilk iş bu butonu çalıştırmaktır.
+
+Sıfırla:
+Programın sıfırlanmasını sağlar kayıtlı tüm verileri siler
+
+Sonuçlar:
+Girilen şehirlere oluşturulan yol ağlarının toplam mesafelerini ve bu ağların izlediği güzergahları gösterir
+
+Harita üzerinde yol göster butonları:
+
+En iyi Sonuc butonu; en kısa yol güzergahını ekrana bastırır
+2.sonuc butonu; 2. en kısa yol güzergahını ekrana çizer
+3.sonuc butonu; 3. en kısa yol güzergahını ekrana çizer
+4.sonuc butonu; 4. en kısa yol güzergahını ekrana çizer
+5.sonuc butonu; 5. en kısa yol güzergahını ekrana çizer
+
+
+           
+	       Gezgin Kargo Problemi
+ 
+
+

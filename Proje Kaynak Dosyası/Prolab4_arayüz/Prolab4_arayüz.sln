@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29911.84
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prolab4_arayüz", "Prolab4_arayüz\Prolab4_arayüz.csproj", "{A045908B-C176-4F98-87BF-59DCB0AEAD23}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A045908B-C176-4F98-87BF-59DCB0AEAD23}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A045908B-C176-4F98-87BF-59DCB0AEAD23}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A045908B-C176-4F98-87BF-59DCB0AEAD23}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A045908B-C176-4F98-87BF-59DCB0AEAD23}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {57CCF907-31EF-4FA8-B779-1F01CE69887C}
+	EndGlobalSection
+EndGlobal
